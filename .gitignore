@@ -1,0 +1,58 @@
+# 练习项目
+腾讯课堂直播回顾/
+面试经/
+2020 前端开发 HTML+CSS 宝典/
+2020 Vue零基础到实战权威开发宝典/
+
+# Node
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# build
+dist/
+build/
+
+# VitePress
+笔记/.vitepress/cache/
+笔记/.vitepress/dist/
+
+# IDE
+# .vscode/
+.idea/
+.DS_Store
+
+# 安装包 / 可执行文件
+*.exe
+
+# 个人文件（不公开）
+简历/
+练习项目/
+课程资源/
+工作周报.md
+大师课/
+代码题/
+技术应用阶段/
+总结/
+
+# 压缩的 node_modules
+*node_modules*.zip
+
+# 课件 / 大型资料
+*.xmind
+
+# 压缩包
+*.rar
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.lzma
+*.tar.lz
+*.tar.lz4
+*.tar.zst

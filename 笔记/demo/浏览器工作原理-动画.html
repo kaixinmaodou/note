@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+
+		<style>
+			.ball {
+				width: 100px;
+				height: 100px;
+				background: #f40;
+				border-radius: 50%;
+				margin: 30px;
+			}
+			.ball1 {
+				animation: move1 1s alternate infinite ease-in-out;
+			}
+			.ball2 {
+				position: fixed;
+				left: 0;
+				animation: move2 1s alternate infinite ease-in-out;
+			}
+			@keyframes move1 {
+				to {
+					/* transform动画在渲染最后阶段(draw) 在合成线程中 所以主线程卡死不影响动画*/
+					transform: translate(100px);
+				}
+			}
+			@keyframes move2 {
+				to {
+					/* js 动画会引起 reflow 点击死循环时 主线程会卡死 导致动画停止 */
+					left: 100px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<button id="btn">死循环</button>
+		<div class="ball ball1"></div>
+		<div class="ball ball2"></div>
+		<script>
+			function delay(duration) {
+				var start = Date.now();
+				while (Date.now() - start < duration) {}
+			}
+			btn.onclick = function () {
+				delay(5000);
+			};
+		</script>
+	</body>
+</html>
