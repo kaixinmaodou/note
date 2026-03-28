@@ -1,3 +1,5 @@
+# 网络
+
 ## URL
 
 <img src="./img/网络-url.png" alt="网络-url" style="zoom:80%;" />
@@ -636,5 +638,128 @@ OSI 七层模型          TCP/IP 四层模型       常见协议
 物理层
 ─────────────────────────────────────────────────
 ```
+
+---
+
+## HTTP 缓存
+
+浏览器对请求资源的缓存机制，合理利用缓存可以显著减少网络请求、提升页面加载速度。
+
+### 缓存位置
+
+| 位置 | 说明 |
+| --- | --- |
+| Memory Cache | 内存缓存，关闭标签页即失效，读取极快 |
+| Disk Cache | 磁盘缓存，持久化存储，容量大 |
+| Service Worker Cache | 由 JS 脚本控制的缓存，可离线使用 |
+| Push Cache | HTTP/2 服务器推送的缓存，生命周期短 |
+
+> 优先级：Service Worker → Memory Cache → Disk Cache → Push Cache → 网络请求
+
+### 强缓存
+
+浏览器直接使用本地缓存，不发送请求到服务器。
+
+| 响应头 | 说明 | 示例 |
+| --- | --- | --- |
+| `Expires` | 过期时间（绝对时间，HTTP/1.0） | `Expires: Thu, 01 Dec 2025 16:00:00 GMT` |
+| `Cache-Control` | 缓存策略（相对时间，HTTP/1.1，**优先级更高**） | `Cache-Control: max-age=31536000` |
+
+`Cache-Control` 常用值：
+
+- `max-age=秒数`：缓存有效期
+- `no-cache`：**不跳过协商缓存**（每次都向服务器验证）
+- `no-store`：**完全不缓存**
+- `public`：可被代理服务器缓存
+- `private`：仅浏览器可缓存
+
+### 协商缓存
+
+强缓存失效后，浏览器携带缓存标识向服务器发送请求，服务器判断资源是否更新。
+
+| 请求头 | 响应头 | 说明 |
+| --- | --- | --- |
+| `If-Modified-Since` | `Last-Modified` | 基于**修改时间**判断（精度到秒） |
+| `If-None-Match` | `ETag` | 基于**内容指纹**判断（优先级更高） |
+
+**流程：**
+
+1. 浏览器发送请求，携带 `If-Modified-Since` / `If-None-Match`
+2. 服务器对比，未变化返回 **304 Not Modified**（使用缓存）
+3. 变化了返回 **200** + 新资源
+
+### 缓存策略总结
+
+```
+浏览器请求资源
+    ↓
+有缓存？ → 否 → 请求服务器 → 缓存资源
+    ↓ 是
+强缓存有效？ → 是 → 200 (from cache)
+    ↓ 否
+发送协商请求 → 服务器判断
+                  ↓         ↓
+              未变化      已变化
+            304 使用缓存  200 新资源
+```
+
+**最佳实践：**
+
+- HTML：`Cache-Control: no-cache`（每次协商）
+- CSS/JS/图片：`Cache-Control: max-age=31536000` + 文件名带 hash（内容变化 → 文件名变化 → 绕过缓存）
+
+---
+
+## 跨域
+
+### 什么是跨域
+
+浏览器的**同源策略**限制了从一个源加载的脚本访问另一个源的资源。两个 URL 的**协议、主机、端口**完全相同才是同源。
+
+### JSONP
+
+利用 `<script>` 标签不受同源策略限制的特性，只支持 GET 请求。
+
+```js
+function jsonp(url, callback) {
+  const cbName = 'jsonp_' + Date.now();
+  window[cbName] = function (data) {
+    callback(data);
+    delete window[cbName];
+    document.head.removeChild(script);
+  };
+  const script = document.createElement('script');
+  script.src = `${url}?callback=${cbName}`;
+  document.head.appendChild(script);
+}
+```
+
+### CORS（跨域资源共享）
+
+服务器通过设置响应头允许跨域：
+
+**简单请求**（GET/HEAD/POST + 简单头）：
+
+```
+Access-Control-Allow-Origin: https://example.com
+```
+
+**预检请求**（非简单请求会先发一个 OPTIONS）：
+
+```
+Access-Control-Allow-Origin: https://example.com
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization
+Access-Control-Max-Age: 86400
+```
+
+### 其他跨域方案
+
+| 方案 | 原理 | 适用场景 |
+| --- | --- | --- |
+| 代理服务器 | 同源服务器转发请求（开发用 devServer.proxy） | 开发环境 |
+| WebSocket | 不受同源策略限制 | 实时通信 |
+| postMessage | `window.postMessage` 跨窗口通信 | iframe 通信 |
+| nginx 反向代理 | 在 nginx 配置转发规则 | 生产环境 |
 
 ---

@@ -2,7 +2,7 @@
 
 ---
 
-# Vue
+# Vue 2
 
 ## 核心概念
 
@@ -1043,7 +1043,7 @@ Vue 中的[事件修饰符](https://www.youtube.com/watch?v=u5hsbvN1fUM&list=PLm
 <input v-model.trim="msg" />
 ```
 
-## ==生命周期==
+## 生命周期
 
 <img src="./img/vueImg/生命周期.png" alt="生命周期" style="zoom: 67%;" />
 
@@ -3974,7 +3974,7 @@ beforeRouteLeave (to, from) {
 }
 ```
 
-### ==完整的导航解析流程==
+### 完整的导航解析流程
 
 1. 导航被触发。
 2. 在失活的组件里调用 **`beforeRouteLeave`** 守卫。

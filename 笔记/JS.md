@@ -1,3 +1,5 @@
+# JavaScript
+
 ## 数据的表达-标识符
 
 和 HTML、CSS 不同, JS 是一门 _命令式编程语言_, 和其他命令式编程语言一样, 它的本质是 **处理数据**
@@ -199,7 +201,7 @@ Symbol.keyFor(localSym); // undefined，
 Symbol.keyFor(Symbol.iterator); // undefined
 ```
 
-##### ==内置通用（well-known）symbol==
+##### 内置通用（well-known）symbol
 
 > 知名符号是一些具有特殊含义的共享符号，通过 Symbol 的静态属性得到
 >
@@ -4422,17 +4424,208 @@ var 声明变量会被初始化为 undefined，一般函数（函数声明式写
 
 ### 内存模型
 
+JavaScript 中的内存分为**栈内存（Stack）**和**堆内存（Heap）**两种：
+
+| 内存类型 | 存储内容                           | 特点                          |
+| -------- | ---------------------------------- | ----------------------------- |
+| 栈内存   | 基本类型值、引用类型的引用地址     | 空间小、存取速度快、自动分配和释放 |
+| 堆内存   | 引用类型的实际数据（对象、数组等） | 空间大、存取速度相对较慢          |
+
+```js
+let a = 10; // 基本类型，值直接存储在栈中
+let b = { name: 'Tom' }; // 引用类型，栈中存储引用地址，实际对象存储在堆中
+let c = b; // c 复制了 b 的引用地址，两者指向同一个堆中的对象
+```
+
 ### 内存周期
 
+不管什么程序语言，内存生命周期基本是一致的：
+
+1. **分配内存** —— 在声明变量、函数、对象时，系统会自动分配内存
+2. **使用内存** —— 读写内存，即使用变量、函数等
+3. **释放内存** —— 使用完毕，由垃圾回收机制自动回收不再使用的内存
+
+```js
+let name = 'Tom'; // 1. 分配内存
+console.log(name); // 2. 使用内存
+name = null; // 3. 不再需要时，释放内存（等待 GC 回收）
+```
+
 ### 垃圾回收
+
+JavaScript 是具有自动垃圾回收机制的语言，开发者不需要手动释放内存。垃圾回收器会周期性地找出不再继续使用的变量，然后释放其占用的内存。
+
+#### 引用计数（Reference Counting）
+
+最早期的垃圾回收算法。原理：跟踪记录每个值被引用的次数，当引用次数变为 0 时，就可以将其回收。
+
+```js
+let obj1 = { a: 1 }; // { a: 1 } 引用次数为 1
+let obj2 = obj1; // { a: 1 } 引用次数为 2
+obj1 = null; // { a: 1 } 引用次数为 1
+obj2 = null; // { a: 1 } 引用次数为 0，可被回收
+```
+
+**缺陷：循环引用**
+
+```js
+function problem() {
+	let objA = {};
+	let objB = {};
+	objA.ref = objB; // objB 引用次数 +1
+	objB.ref = objA; // objA 引用次数 +1
+	// 函数结束后，objA 和 objB 互相引用，引用次数都不为 0
+	// 但它们已经无法被外部访问 → 内存泄漏
+}
+```
+
+#### 标记清除（Mark-and-Sweep）
+
+现代浏览器普遍采用的算法。原理：从根对象（全局对象）出发，标记所有能够被访问到的对象，未被标记的对象就会被回收。
+
+1. 垃圾回收器从**根对象**（如 `window`）开始，遍历所有可达对象并**标记（mark）**
+2. 遍历完成后，未被标记的对象就是不可达对象
+3. **清除（sweep）**这些不可达的对象，释放内存
+
+> 标记清除能够解决循环引用的问题，因为从根对象出发无法到达的循环引用对象，不会被标记，自然会被回收。
+
+#### V8 引擎的分代回收
+
+V8 引擎将堆内存分为**新生代**和**老生代**：
+
+| 分区   | 特点                       | 回收算法                                               |
+| ------ | -------------------------- | ------------------------------------------------------ |
+| 新生代 | 存活时间短的对象，空间较小 | Scavenge（复制算法）：将存活对象复制到另一半空间，交换两个空间 |
+| 老生代 | 存活时间长的对象，空间较大 | Mark-Sweep + Mark-Compact（标记整理，减少碎片）        |
+
+当新生代中的对象经过多次回收仍然存活，会被**晋升（promotion）**到老生代。
+
+#### 常见内存泄漏场景
+
+1. **意外的全局变量**：未声明的变量会挂在全局对象上
+2. **被遗忘的定时器**：`setInterval` 未清除，其回调引用的变量无法回收
+3. **闭包**：闭包中引用的外部变量会一直保留在内存中
+4. **脱离 DOM 的引用**：JS 中仍持有已从 DOM 树移除的元素引用
+
+```js
+// 1. 意外的全局变量
+function foo() {
+	bar = 'global'; // 没有用 let/const/var，成为 window.bar
+}
+
+// 2. 被遗忘的定时器
+let data = fetchData();
+setInterval(() => {
+	render(data); // data 永远不会被回收
+}, 1000);
+
+// 3. 闭包
+function outer() {
+	let bigData = new Array(100000);
+	return function inner() {
+		console.log(bigData.length); // bigData 一直被引用
+	};
+}
+const fn = outer(); // bigData 无法被回收
+
+// 4. 脱离 DOM 的引用
+let btn = document.getElementById('btn');
+document.body.removeChild(btn); // DOM 中移除了
+// 但 btn 变量仍引用该元素，无法被 GC 回收
+btn = null; // 需要手动解除引用
+```
 
 ## 并发模型
 
 ### 并发模型
 
+JavaScript 采用**单线程**的执行模型，同一时间只能执行一个任务。为了处理异步操作（如网络请求、定时器、用户交互等），JavaScript 使用了基于**事件循环（Event Loop）**的并发模型。
+
+这个模型由以下部分组成：
+
+- **调用栈（Call Stack）**：执行同步代码，函数调用会依次入栈，执行完出栈
+- **Web API / Node API**：浏览器或 Node.js 提供的异步接口（如 `setTimeout`、`fetch`、DOM 事件等）
+- **任务队列（Task Queue）**：也叫宏任务队列，存放异步回调（如 `setTimeout` 回调、I/O 回调）
+- **微任务队列（Microtask Queue）**：存放微任务回调（如 `Promise.then`、`MutationObserver`）
+
+> 详细的事件循环机制参考 [事件循环 (浏览器、Node)](#事件循环-浏览器、node)
+
 ### 事件循环
 
+事件循环是 JS 实现异步的核心机制，其基本流程：
+
+1. 执行**调用栈**中的同步代码
+2. 调用栈清空后，检查**微任务队列**，依次执行所有微任务
+3. 微任务队列清空后，从**宏任务队列**中取出一个任务执行
+4. 重复以上步骤
+
+```
+┌───────────────────────────┐
+│        调用栈 (Call Stack)  │
+│  同步代码在此执行            │
+└─────────────┬─────────────┘
+              │ 栈空时
+              ▼
+┌───────────────────────────┐
+│   微任务队列 (Microtask)    │  Promise.then / MutationObserver
+│   全部执行完                │
+└─────────────┬─────────────┘
+              │
+              ▼
+┌───────────────────────────┐
+│   宏任务队列 (Macrotask)    │  setTimeout / setInterval / I/O
+│   取一个执行                │
+└─────────────┬─────────────┘
+              │ 回到顶部
+              ▼
+```
+
+**常见的宏任务和微任务：**
+
+| 宏任务（Macrotask）     | 微任务（Microtask）               |
+| ----------------------- | --------------------------------- |
+| setTimeout / setInterval | Promise.then / catch / finally    |
+| I/O 操作                | MutationObserver                  |
+| UI 渲染                 | queueMicrotask()                  |
+| requestAnimationFrame   | process.nextTick（Node.js）       |
+
+> 更详细的内容参考 [事件循环 (浏览器、Node)](#事件循环-浏览器、node)
+
 ### 定时器机制
+
+JavaScript 提供了两种定时器：
+
+- **`setTimeout(callback, delay)`**：延迟 `delay` 毫秒后执行一次 `callback`
+- **`setInterval(callback, delay)`**：每隔 `delay` 毫秒重复执行 `callback`
+
+```js
+// setTimeout
+const timer1 = setTimeout(() => {
+	console.log('1秒后执行');
+}, 1000);
+clearTimeout(timer1); // 取消定时器
+
+// setInterval
+const timer2 = setInterval(() => {
+	console.log('每秒执行一次');
+}, 1000);
+clearInterval(timer2); // 取消定时器
+```
+
+**注意事项：**
+
+1. 定时器的 `delay` 不是精确的执行时间，而是**最少等待时间**。回调会在 delay 后被放入宏任务队列，等待调用栈清空后才执行
+2. `setTimeout(fn, 0)` 不是立即执行，而是在当前同步代码和微任务执行完后才执行
+3. `setInterval` 可能存在任务堆积问题，可以用递归 `setTimeout` 代替：
+
+```js
+// 用递归 setTimeout 替代 setInterval
+function loop() {
+	console.log('执行任务');
+	setTimeout(loop, 1000); // 确保本次任务完成后再安排下一次
+}
+loop();
+```
 
 ## 严格模式
 
@@ -7795,7 +7988,7 @@ repaint 的本质就是重新根据分层信息计算了绘制指令。
 3. 避免多次触发布局
    对于页面中比较复杂的动画，尽量将元素设置为绝对定位，操作元素的定位属性，这样只有这一个元素会回流，如果不是定位的话，容易引起其父元素以及子元素的回流。
 
-### ==元素隐藏的影响==
+### 元素隐藏的影响
 
 [参考](https://juejin.cn/post/7120293706384539679)
 
@@ -9693,7 +9886,7 @@ console.log(generator3.next()); // { value: 2, done: false }
 -   **什么是生成器**: 一个拥有在函数块内暂停和恢复代码执行能力的结构。通过`next()`恢复代码执行，遇到`yield`关键字暂停执行。
 -   生成器执行过程中遇到`throw`和`return`会结束生成器，也可以调用生成器对象的`return()`函数提前结束生成器
 
-### 应用-==异步任务控制==
+### 应用-异步任务控制
 
 ```js
 function* task() {
@@ -9736,7 +9929,7 @@ function run(generatorFunc) {
 }
 ```
 
-## 代理与==反射==
+## 代理与反射
 
 ### 反射 Reflect
 

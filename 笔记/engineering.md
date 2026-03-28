@@ -1,3 +1,5 @@
+# 工程化
+
 > **工程化，为复杂应用而生**
 >
 > 本文为保持简单，牺牲了某些语言的准确性
@@ -1145,7 +1147,7 @@ create-react-app my-app
 
 如今，npm 已经支持修改 registry 了，可能 cnpm 唯一的作用就是和 npm 共存，即如果要使用官方源，则使用 npm，如果使用淘宝源，则使用 cnpm
 
-## ==pnpm==
+## pnpm
 
 pnpm 是一种新起的包管理器，从 npm 的下载量看，目前还没有超过 yarn，但它的实现方式值得主流包管理器学习，某些开发者极力推荐使用 pnpm
 
@@ -2092,6 +2094,154 @@ module.exports = {
   ],
   plugins: ['@babel/plugin-transform-runtime']
 };
+```
+
+---
+
+# ESLint
+
+## 作用
+
+ESLint 是 JS/TS 的静态代码分析工具，用于发现和修复代码中的问题（语法错误、风格不一致、潜在 bug 等）。
+
+## 基本配置
+
+```js
+// .eslintrc.js
+module.exports = {
+  env: { browser: true, es2021: true, node: true },
+  extends: ['eslint:recommended'],
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module'
+  },
+  rules: {
+    'no-console': 'warn',       // 0=off, 1=warn, 2=error
+    'no-unused-vars': 'warn',
+    'eqeqeq': 'error',          // 必须使用 ===
+    'no-var': 'error'            // 禁止使用 var
+  }
+};
+```
+
+## 常用命令
+
+```bash
+npx eslint .                    # 检查当前目录
+npx eslint --fix .              # 自动修复
+npx eslint --ext .js,.vue src/  # 指定扩展名和目录
+```
+
+## Vue 项目中的 ESLint
+
+```js
+// .eslintrc.js（Vue 项目）
+module.exports = {
+  extends: [
+    'eslint:recommended',
+    'plugin:vue/vue3-recommended'   // Vue 3 推荐规则
+  ],
+  parser: 'vue-eslint-parser',
+  parserOptions: {
+    parser: '@babel/eslint-parser'
+  }
+};
+```
+
+---
+
+# Prettier
+
+## 作用
+
+Prettier 是代码格式化工具，专注于代码风格（缩进、引号、分号等），与 ESLint 互补：
+
+- **ESLint**：代码质量 + 部分格式
+- **Prettier**：纯格式化
+
+## 基本配置
+
+```json
+// .prettierrc
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "arrowParens": "always",
+  "endOfLine": "lf"
+}
+```
+
+## 与 ESLint 配合
+
+安装：
+
+```bash
+npm i -D eslint-config-prettier eslint-plugin-prettier
+```
+
+配置：
+
+```js
+// .eslintrc.js
+module.exports = {
+  extends: [
+    'eslint:recommended',
+    'plugin:prettier/recommended'  // 放在最后，关闭与 Prettier 冲突的 ESLint 规则
+  ]
+};
+```
+
+---
+
+# Git Hooks（husky + lint-staged）
+
+## 为什么需要
+
+防止不规范的代码被提交到仓库。在 `git commit` 时自动执行 ESLint 检查和 Prettier 格式化。
+
+## 配置步骤
+
+```bash
+# 1. 安装
+npm i -D husky lint-staged
+
+# 2. 初始化 husky
+npx husky init
+
+# 3. 编辑 .husky/pre-commit
+echo "npx lint-staged" > .husky/pre-commit
+```
+
+## lint-staged 配置
+
+```json
+// package.json
+{
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,vue}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,less,scss}": [
+      "prettier --write"
+    ]
+  }
+}
+```
+
+## 工作流程
+
+```
+git add → git commit → 触发 pre-commit hook → lint-staged
+                                                   ↓
+                                        只对暂存区文件执行
+                                        ESLint --fix + Prettier
+                                                   ↓
+                                        通过 → 提交成功
+                                        失败 → 提交中断，需修复后重新提交
 ```
 
 ---
