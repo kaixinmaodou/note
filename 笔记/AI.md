@@ -1,8 +1,8 @@
 # AI 辅助前端开发
 
-## 一、AI 编码工具
+## AI 编码工具
 
-### 1.1 主流工具对比
+### 主流工具对比
 
 | 工具 | 特点 | 适用场景 |
 |------|------|----------|
@@ -12,7 +12,7 @@
 | **v0.dev** | Vercel 出品，从描述生成 UI 组件 | 快速原型、UI 组件生成 |
 | **bolt.new** | 全栈 AI 开发，直接生成可运行项目 | 快速 Demo、全栈原型 |
 
-### 1.2 高效使用技巧
+### 高效使用技巧
 
 ```markdown
 1. **提供充分上下文**：打开相关文件、写好类型定义，AI 补全质量会显著提升
@@ -22,7 +22,7 @@
 5. **迭代式 Prompt**：一次生成不满意就追加要求，逐步优化
 ```
 
-### 1.3 Prompt Engineering 技巧（面向开发者）
+### Prompt Engineering 技巧（面向开发者）
 
 ```markdown
 ## 好的 Prompt 模板
@@ -49,9 +49,9 @@
 
 ---
 
-## 二、AI 驱动的组件开发
+## AI 驱动的组件开发
 
-### 2.1 用 AI 快速生成组件
+### 用 AI 快速生成组件
 
 **典型工作流：**
 
@@ -114,7 +114,7 @@ function handleSort(column: Column) {
 </script>
 ```
 
-### 2.2 设计稿转代码
+### 设计稿转代码
 
 ```markdown
 工具链：
@@ -130,9 +130,9 @@ function handleSort(column: Column) {
 
 ---
 
-## 三、AI 辅助代码迁移与重构
+## AI 辅助代码迁移与重构
 
-### 3.1 框架迁移
+### 框架迁移
 
 #### Vue2 → Vue3 迁移
 
@@ -178,7 +178,7 @@ AI 可以帮助：
 4. 识别不兼容的 webpack loader，推荐 Vite 插件替代
 ```
 
-### 3.2 代码重构
+### 代码重构
 
 ```markdown
 常见 AI 辅助重构场景：
@@ -190,9 +190,9 @@ AI 可以帮助：
 
 ---
 
-## 四、AI 辅助自动化测试
+## AI 辅助自动化测试
 
-### 4.1 单元测试生成
+### 单元测试生成
 
 ```typescript
 // AI 可以根据源码自动生成测试用例
@@ -232,7 +232,7 @@ describe('formatPrice', () => {
 })
 ```
 
-### 4.2 组件测试生成
+### 组件测试生成
 
 ```markdown
 Prompt 模板：
@@ -245,7 +245,7 @@ Prompt 模板：
 6. 边界情况（空数据、加载中、错误状态）"
 ```
 
-### 4.3 E2E 测试生成
+### E2E 测试生成
 
 ```markdown
 AI 可以根据用户故事生成 Playwright / Cypress 测试：
@@ -277,7 +277,7 @@ test('用户登录流程', async ({ page }) => {
 })
 ```
 
-### 4.4 测试覆盖率提升策略
+### 测试覆盖率提升策略
 
 ```markdown
 1. 让 AI 分析现有代码，找出未覆盖的分支
@@ -288,9 +288,9 @@ test('用户登录流程', async ({ page }) => {
 
 ---
 
-## 五、AI 在前端工程化中的应用
+## AI 在前端工程化中的应用
 
-### 5.1 Code Review
+### Code Review
 
 ```markdown
 - **AI 辅助 CR**：GitHub Copilot PR Review、CodeRabbit 等
@@ -301,7 +301,7 @@ test('用户登录流程', async ({ page }) => {
   - 类型安全问题
 ```
 
-### 5.2 文档生成
+### 文档生成
 
 ```markdown
 - AI 自动生成 JSDoc / TSDoc 注释
@@ -310,7 +310,7 @@ test('用户登录流程', async ({ page }) => {
 - 根据代码生成 README
 ```
 
-### 5.3 Commit Message & PR 描述
+### Commit Message & PR 描述
 
 ```markdown
 - AI 根据 diff 自动生成规范的 commit message（Conventional Commits）
@@ -319,12 +319,14 @@ test('用户登录流程', async ({ page }) => {
 
 ---
 
-## 六、前端应用接入 AI 能力
+## 前端应用接入 AI 能力
 
-### 6.1 调用大模型 API
+### 调用大模型 API
+
+#### 基础调用（OpenAI 兼容格式）
 
 ```typescript
-// 基础调用示例（OpenAI 兼容 API）
+// ⚠️ 实际项目中 API_KEY 不能暴露在前端，应通过后端代理转发请求
 async function chat(message: string): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -342,46 +344,145 @@ async function chat(message: string): Promise<string> {
 }
 ```
 
-### 6.2 流式输出（SSE）
+#### 国内大模型接入
+
+主流国内大模型大多兼容 OpenAI 接口格式，只需替换 `baseURL` 和 `model`：
+
+| 模型 | baseURL | 模型名示例 |
+|------|---------|-----------|
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| 通义千问 | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
+| Kimi (月之暗面) | `https://api.moonshot.cn/v1` | `moonshot-v1-8k` |
+| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-4` |
+
+```typescript
+// 示例：调用 DeepSeek（兼容 OpenAI 格式，代码几乎不用改）
+const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+  },
+  body: JSON.stringify({
+    model: 'deepseek-chat',
+    messages: [{ role: 'user', content: '你好' }],
+    stream: true  // 支持流式输出
+  })
+})
+```
+
+### 流式输出（SSE）
 
 ```typescript
 // 流式输出 — 实现打字机效果
-async function streamChat(message: string, onChunk: (text: string) => void) {
+async function streamChat(
+  message: string,
+  onChunk: (text: string) => void,
+  signal?: AbortSignal  // 支持取消请求
+) {
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message })
+    body: JSON.stringify({ message }),
+    signal
   })
+
+  if (!response.ok) {
+    throw new Error(`请求失败: ${response.status}`)
+  }
 
   const reader = response.body!.getReader()
   const decoder = new TextDecoder()
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    const chunk = decoder.decode(value, { stream: true })
-    // SSE 格式：data: {...}\n\n
-    const lines = chunk.split('\n').filter(line => line.startsWith('data: '))
+      const chunk = decoder.decode(value, { stream: true })
+      // SSE 格式：data: {...}\n\n
+      const lines = chunk.split('\n').filter(line => line.startsWith('data: '))
 
-    for (const line of lines) {
-      const data = line.slice(6) // 去掉 "data: "
-      if (data === '[DONE]') return
-      const parsed = JSON.parse(data)
-      const content = parsed.choices?.[0]?.delta?.content || ''
-      if (content) onChunk(content)
+      for (const line of lines) {
+        const data = line.slice(6) // 去掉 "data: "
+        if (data === '[DONE]') return
+        try {
+          const parsed = JSON.parse(data)
+          const content = parsed.choices?.[0]?.delta?.content || ''
+          if (content) onChunk(content)
+        } catch {
+          // 忽略非 JSON 行
+        }
+      }
     }
+  } finally {
+    reader.releaseLock()
   }
 }
-
-// Vue3 组合式用法
-const answer = ref('')
-await streamChat('你好', (chunk) => {
-  answer.value += chunk  // 逐字追加，实现打字机效果
-})
 ```
 
-### 6.3 Vercel AI SDK（推荐）
+#### Vue3 封装 useChat composable
+
+```typescript
+// composables/useChat.ts
+import { ref } from 'vue'
+
+interface Message {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export function useChat() {
+  const messages = ref<Message[]>([])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+  const controller = ref<AbortController | null>(null)
+
+  async function send(content: string) {
+    error.value = null
+    messages.value.push({ role: 'user', content })
+    messages.value.push({ role: 'assistant', content: '' })
+    isLoading.value = true
+    controller.value = new AbortController()
+
+    const lastIndex = messages.value.length - 1
+
+    try {
+      await streamChat(
+        content,
+        (chunk) => {
+          messages.value[lastIndex].content += chunk
+        },
+        controller.value.signal
+      )
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        error.value = e.message
+        messages.value.pop() // 移除空的 assistant 消息
+      }
+    } finally {
+      isLoading.value = false
+      controller.value = null
+    }
+  }
+
+  function stop() {
+    controller.value?.abort()
+  }
+
+  function clear() {
+    messages.value = []
+  }
+
+  return { messages, isLoading, error, send, stop, clear }
+}
+
+// 组件中使用
+// const { messages, isLoading, send, stop } = useChat()
+// send('帮我写一个防抖函数')
+```
+
+### Vercel AI SDK（推荐）
 
 ```typescript
 // 使用 Vercel AI SDK 简化流式 AI 调用
@@ -408,7 +509,7 @@ const { messages, input, handleSubmit, isLoading } = useChat({
 })
 ```
 
-### 6.4 RAG（检索增强生成）
+### RAG（检索增强生成）
 
 ```markdown
 **RAG 基本流程：**
@@ -423,11 +524,114 @@ const { messages, input, handleSubmit, isLoading } = useChat({
 - 常用向量数据库：Pinecone、Milvus、Chroma
 ```
 
+### Function Calling（函数调用）
+
+让 AI 模型调用预定义的函数，实现 **AI 与外部系统交互**（查天气、查数据库、操作 DOM 等）。
+
+```typescript
+// 1. 定义可用函数（告诉 AI 有哪些工具可用）
+const tools = [
+  {
+    type: 'function',
+    function: {
+      name: 'getWeather',
+      description: '获取指定城市的天气信息',
+      parameters: {
+        type: 'object',
+        properties: {
+          city: { type: 'string', description: '城市名称' }
+        },
+        required: ['city']
+      }
+    }
+  }
+]
+
+// 2. 发请求时带上 tools 参数
+const response = await fetch('/api/chat', {
+  method: 'POST',
+  body: JSON.stringify({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: '北京今天天气怎么样？' }],
+    tools
+  })
+})
+
+// 3. AI 返回 function_call → 前端执行对应函数 → 结果回传给 AI
+const data = await response.json()
+const toolCall = data.choices[0].message.tool_calls?.[0]
+
+if (toolCall) {
+  const args = JSON.parse(toolCall.function.arguments)
+  const result = await getWeather(args.city) // 执行本地函数
+  // 将结果回传给 AI 生成最终回答
+  messages.push(
+    data.choices[0].message,
+    { role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(result) }
+  )
+}
+```
+
+```
+典型应用场景：
+- 智能客服：AI 自动查询订单状态、库存信息
+- 数据看板：用户用自然语言提问，AI 调用接口查数据再生成图表
+- 表单助手：AI 根据对话自动填充表单字段
+```
+
+### 聊天界面实现要点
+
+前端实现 AI 聊天界面的关键技术点：
+
+```markdown
+**消息列表渲染：**
+- 区分 user / assistant / system 角色样式
+- 支持流式追加（打字机效果）：用 v-html 或 markdown 渲染组件实时更新
+- 自动滚动到底部（注意用户手动滚动时暂停自动滚动）
+
+**Markdown 渲染：**
+- 推荐库：marked + highlight.js（轻量）、markdown-it（功能全）
+- AI 回复常包含代码块，需要语法高亮
+- 注意 XSS 防护：使用 DOMPurify 过滤渲染后的 HTML
+
+**代码块处理：**
+- 添加"复制代码"按钮
+- 语法高亮（highlight.js / Shiki）
+- 支持多语言标识
+
+**交互细节：**
+- 发送中禁用输入框，显示 loading 动画
+- 支持停止生成（AbortController 取消请求）
+- 消息重新生成、上下文记忆管理
+- 支持多轮对话（维护 messages 数组）
+```
+
+```typescript
+// 停止生成示例
+const controller = ref<AbortController | null>(null)
+
+async function sendMessage(content: string) {
+  controller.value = new AbortController()
+
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    body: JSON.stringify({ messages: [...] }),
+    signal: controller.value.signal  // 传入 signal
+  })
+  // ... 处理流式响应
+}
+
+function stopGeneration() {
+  controller.value?.abort()  // 取消请求
+  controller.value = null
+}
+```
+
 ---
 
-## 七、AI 开发的边界与注意事项
+## AI 开发的边界与注意事项
 
-### 7.1 AI 生成代码的局限性
+### AI 生成代码的局限性
 
 ```markdown
 1. **上下文窗口有限**：超大项目中 AI 可能丢失全局上下文
@@ -437,7 +641,7 @@ const { messages, input, handleSubmit, isLoading } = useChat({
 5. **业务理解不足**：复杂业务逻辑仍需人工把关
 ```
 
-### 7.2 面试中如何谈 AI
+### 面试中如何谈 AI
 
 ```markdown
 ✅ 正确姿势：

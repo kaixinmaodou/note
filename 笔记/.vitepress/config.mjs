@@ -148,7 +148,8 @@ export default defineConfig({
       {
         text: '其他',
         items: [
-          { text: '第三方库速查', link: '/三方库' }
+          { text: '第三方库速查', link: '/三方库' },
+          { text: 'AI 辅助开发', link: '/AI' }
         ]
       }
     ],
