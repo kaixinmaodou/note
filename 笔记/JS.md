@@ -6231,15 +6231,15 @@ Array(arrayLength);
 | [Array.from(arg)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/from)                                                                                                                                                 | 过给定的类数组 或 可迭代对象 创建一个新的数组                                                                                                                               |                                                                                                                                                                                                   |
 | [Array.of(...args)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/of)                                                                                                                                                 | 通过可变数量的参数创建一个新的 `Array` 实例，而不考虑参数的数量或类型                                                                                                       |                                                                                                                                                                                                   |
 | [Array.prototype.copyWithin()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/copyWithin)                                                                                                                              | **`copyWithin()`** 方法**浅复制**数组的一部分到同一数组中的另一个位置，并返回它，不会改变原数组的长度                                                                       | copyWithin(target) <br />copyWithin(target, start) <br />copyWithin(target, start, end)                                                                                                           |
-| [Array.prototype.fill(n)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/fill)                                                                                                                                         | 将数组的某些项设置为 n<br />==修改原数组== n<br />用来填充数组元素的值。**注意所有数组中的元素都将是这个确定的值：如果 value 是个对象，那么数组的每一项都会引用这个元素。** | <img src="http://mdrs.yuanjin.tech/img/20210602165516.png" alt="image-20210602165515908" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.forEach(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach)                                                                                                                                  | 遍历数组，传入一个函数，每次遍历会运行该函数                                                                                                                                | <img src="http://mdrs.yuanjin.tech/img/20210602165832.png" alt="image-20210602165832725" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.map(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/map)                                                                                                                                          | 数组映射，传入一个函数，映射数组中的每一项 <br />==返回新数组==                                                                                                             | <img src="http://mdrs.yuanjin.tech/img/20210602170025.png" alt="image-20210602170025141" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.filter(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/filter)                                                                                                                                    | 数组筛选，传入一个函数，仅保留满足条件的项<br />==返回新数组==                                                                                                              | <img src="http://mdrs.yuanjin.tech/img/20210602170149.png" alt="image-20210602170149489" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.reduce(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce)                                                                                                                                    | 数组聚合，传入一个函数，对数组每一项按照该函数的返回聚合                                                                                                                    | <img src="http://mdrs.yuanjin.tech/img/20210602170451.png" alt="image-20210602170451299" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.some(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/some)                                                                                                                                        | 传入一个函数，判断数组中是否有至少一个通过该函数测试的项<br />                                                                                                              | <img src="http://mdrs.yuanjin.tech/img/20210602171403.png" alt="image-20210602171403455" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.every(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/every)                                                                                                                                      | 传入一个函数，判断数组中是否所有项都能通过该函数的测试                                                                                                                      | <img src="http://mdrs.yuanjin.tech/img/20210602171441.png" alt="image-20210602171441468" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.find(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/find)<br />[Array.prototype.findIndex(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex) | 传入一个函数，找到数组中第一个能通过该函数测试的项(索引)                                                                                                                    | <img src="http://mdrs.yuanjin.tech/img/20210602171510.png" alt="image-20210602171510075" style="zoom:50%;" />                                                                                     |
-| [Array.prototype.includes(item)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/includes)                                                                                                                              | 判断数组中是否存在 item，判定规则使用的是`Object.is`                                                                                                                        | <img src="http://mdrs.yuanjin.tech/img/20210602170615.png" alt="image-20210602170615564" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.fill(n)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/fill)                                                                                                                                         | 将数组的某些项设置为 n<br />==修改原数组== n<br />用来填充数组元素的值。**注意所有数组中的元素都将是这个确定的值：如果 value 是个对象，那么数组的每一项都会引用这个元素。** | <img src="./img/yuanjin/20210602165516.png" alt="image-20210602165515908" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.forEach(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach)                                                                                                                                  | 遍历数组，传入一个函数，每次遍历会运行该函数                                                                                                                                | <img src="./img/yuanjin/20210602165832.png" alt="image-20210602165832725" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.map(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/map)                                                                                                                                          | 数组映射，传入一个函数，映射数组中的每一项 <br />==返回新数组==                                                                                                             | <img src="./img/yuanjin/20210602170025.png" alt="image-20210602170025141" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.filter(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/filter)                                                                                                                                    | 数组筛选，传入一个函数，仅保留满足条件的项<br />==返回新数组==                                                                                                              | <img src="./img/yuanjin/20210602170149.png" alt="image-20210602170149489" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.reduce(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce)                                                                                                                                    | 数组聚合，传入一个函数，对数组每一项按照该函数的返回聚合                                                                                                                    | <img src="./img/yuanjin/20210602170451.png" alt="image-20210602170451299" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.some(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/some)                                                                                                                                        | 传入一个函数，判断数组中是否有至少一个通过该函数测试的项<br />                                                                                                              | <img src="./img/yuanjin/20210602171403.png" alt="image-20210602171403455" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.every(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/every)                                                                                                                                      | 传入一个函数，判断数组中是否所有项都能通过该函数的测试                                                                                                                      | <img src="./img/yuanjin/20210602171441.png" alt="image-20210602171441468" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.find(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/find)<br />[Array.prototype.findIndex(fn)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex) | 传入一个函数，找到数组中第一个能通过该函数测试的项(索引)                                                                                                                    | <img src="./img/yuanjin/20210602171510.png" alt="image-20210602171510075" style="zoom:50%;" />                                                                                     |
+| [Array.prototype.includes(item)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/includes)                                                                                                                              | 判断数组中是否存在 item，判定规则使用的是`Object.is`                                                                                                                        | <img src="./img/yuanjin/20210602170615.png" alt="image-20210602170615564" style="zoom:50%;" />                                                                                     |
 | [Array.prototype.flat()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/flat)                                                                                                                                          | 方法创建一个新的数组，并根据指定深度递归地将所有子数组元素拼接到新的数组中                                                                                                  | flat()<br/>flat(depth)<br />`depth 指定要提取嵌套数组的结构深度，默认值为 1。`                                                                                                                    |
 
 -   **练习**
@@ -7420,7 +7420,7 @@ function debounce(fn, duration = 1000) {
 
 程序运行需要有它自己专属的内存空间, 可以把这块内存空间简单的理解为进程
 
-<img src="http://mdrs.yuanjin.tech/img/202208092057573.png" alt="image-20220809205743532" style="zoom:50%;" />
+<img src="./img/yuanjin/202208092057573.png" alt="image-20220809205743532" style="zoom:50%;" />
 每个应用至少有一个进程, 进程之间相互独立, 即使要通信, 也需要双方同意。
 
 #### 何为线程？
@@ -7433,7 +7433,7 @@ function debounce(fn, duration = 1000) {
 
 如果程序需要同时执行多块代码, 主线程就会启动更多的线程来执行代码, 所以一个进程中可以包含多个线程。
 
-<img src="http://mdrs.yuanjin.tech/img/202208092108499.png" alt="image-20220809210859457" style="zoom:50%;" />
+<img src="./img/yuanjin/202208092108499.png" alt="image-20220809210859457" style="zoom:50%;" />
 
 #### 浏览器有哪些进程和线程？
 
@@ -7443,7 +7443,7 @@ function debounce(fn, duration = 1000) {
 
 为了避免相互影响, 为了减少连环崩溃的几率, 当启动浏览器后, 它会自动启动多个进程。
 
-<img src="http://mdrs.yuanjin.tech/img/202208092131410.png" alt="image-20220809213152371" style="zoom:50%;" />
+<img src="./img/yuanjin/202208092131410.png" alt="image-20220809213152371" style="zoom:50%;" />
 
 > 可以在浏览器的任务管理器中查看当前的所有进程
 
@@ -7495,7 +7495,7 @@ function debounce(fn, duration = 1000) {
 
 渲染主线程想出了一个绝妙的主意来处理这个问题: **排队**
 
-<img src="http://mdrs.yuanjin.tech/img/202208092230847.png" alt="渲染主线程想出了一个绝妙的主意来处理这个问题:排队" style="zoom: 50%;" />
+<img src="./img/yuanjin/202208092230847.png" alt="渲染主线程想出了一个绝妙的主意来处理这个问题:排队" style="zoom: 50%;" />
 
 1. 在最开始的时候, 渲染主线程会进入一个无限循环 `for(;;)`
 2. 每一次循环会检查消息队列中是否有任务存在。如果有, 就取出第一个任务执行, 执行完一个后进入下一次循环；如果没有, 则进入休眠状态。
@@ -7517,13 +7517,13 @@ function debounce(fn, duration = 1000) {
 
 如果让渲染主线程等待这些任务的时机达到, 就会导致主线程长期处于「阻塞」的状态, 从而导致浏览器「卡死」
 
-<img src="http://mdrs.yuanjin.tech/img/202208101043348.png" alt="image-20220810104344296" style="zoom:50%;" />
+<img src="./img/yuanjin/202208101043348.png" alt="image-20220810104344296" style="zoom:50%;" />
 
 **渲染主线程承担着极其重要的工作, 无论如何都不能阻塞！**
 
 因此, 浏览器选择**异步**来解决这个问题
 
-<img src="http://mdrs.yuanjin.tech/img/202208101048899.png" alt="image-20220810104858857" style="zoom:50%;" />
+<img src="./img/yuanjin/202208101048899.png" alt="image-20220810104858857" style="zoom:50%;" />
 
 使用异步的方式, **渲染主线程永不阻塞**
 
@@ -8391,7 +8391,7 @@ myEmitter.on('event', () => {
 >
 > 剩余两部分的知识，绝大部分情况下都用不到，除非你要写一些 _高端_ 的代码
 
-![image-20211222175234095](http://mdrs.yuanjin.tech/img/20211222175234.png)
+![image-20211222175234095](./img/yuanjin/20211222175234.png)
 
 **异常并非坏事，它可以让开发人员及时发现错误、定位错误，甚至在某些时候，我们还需要故意的抛出异常**
 
@@ -8495,13 +8495,13 @@ function sum(a, b) {
 
 说出下面的错误描述的含义，以及该错误发生的原因
 
-![image-20211223103308973](http://mdrs.yuanjin.tech/img/20211223103309.png)
+![image-20211223103308973](./img/yuanjin/20211223103309.png)
 
-![image-20211223103332002](http://mdrs.yuanjin.tech/img/20211223103332.png)
+![image-20211223103332002](./img/yuanjin/20211223103332.png)
 
-<img src="http://mdrs.yuanjin.tech/img/20211223103347.png" alt="image-20211223103347139" style="zoom:50%;" />
+<img src="./img/yuanjin/20211223103347.png" alt="image-20211223103347139" style="zoom:50%;" />
 
-<img src="http://mdrs.yuanjin.tech/img/20211223103450.png" alt="image-20211223103450241" style="zoom:50%;" />
+<img src="./img/yuanjin/20211223103450.png" alt="image-20211223103450241" style="zoom:50%;" />
 
 ---
 
