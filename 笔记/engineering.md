@@ -2244,4 +2244,707 @@ git add → git commit → 触发 pre-commit hook → lint-staged
                                         失败 → 提交中断，需修复后重新提交
 ```
 
+
+## 实战难点与解决方案
+
+### 一、超大文件导出 Excel（10万+ 数据）
+
+#### 1. 问题场景
+
+**真实业务：** 订单管理系统需要导出 10万+ 订单数据、财务报表、用户行为日志等。
+
+**传统方案的痛点：**
+- 前端一次性处理 10万 条数据 → 浏览器卡死或崩溃
+- 后端同步生成耗时 30s+ → 接口超时（Nginx 默认 60s）
+- 用户等待过程无反馈 → 不知道进度，疯狂刷新
+- 并发导出时服务器压力大 → CPU、内存占用高
+
 ---
+
+#### 2. 技术方案演进
+
+**方案对比：**
+
+| 方案 | 数据量 | 响应时间 | 优点 | 缺点 | 适用场景 |
+|------|--------|---------|------|------|---------|
+| **前端生成** | ≤5000 | 秒级 | 无需后端，立即下载 | 浏览器性能受限 | 小数据快速导出 |
+| **后端同步** | ≤2万 | 10-30s | 支持复杂格式 | 接口易超时 | 中等数据量 |
+| **异步任务** | ≥10万 | 分钟级 | 用户体验好，服务器压力小 | 实现复杂 | **推荐：大数据量** |
+| **流式导出** | 百万级 | 长时间 | 内存占用极低 | 无法显示进度 | 超大数据量 |
+
+---
+
+#### 3. 推荐方案：异步任务 + 消息队列
+
+**核心思路：**
+```
+用户点击导出 → 立即返回 taskId → 显示进度条 
+→ 后台异步生成（消息队列 + Worker） → 上传到 OSS 
+→ 前端轮询进度 → 获取下载链接
+```
+
+**架构设计：**
+
+1. **前端**：
+   - 提交任务，获取 taskId
+   - 每 2 秒轮询任务状态（\`/api/export/status/:taskId\`）
+   - 显示进度条（查询 40%、生成 50%、上传 10%）
+   - 完成后获取下载链接
+
+2. **后端**：
+   - 使用 **Bull 消息队列**处理任务（削峰填谷）
+   - **分页查询数据**（每次 1 万条，避免内存溢出）
+   - 使用 **ExcelJS 流式写入**（边查询边写入，节省内存）
+   - 批量提交（每 1000 行 commit 一次）
+   - 文件上传到 **OSS**，生成带签名的下载链接（7 天有效）
+   - 任务状态存储在 **Redis** 中（带过期时间）
+
+**关键代码片段（简化）：**
+
+```js
+// 前端：轮询进度
+async function pollStatus(taskId) {
+  const { status, progress, fileUrl } = await axios.get(\`/api/export/status/\${taskId}\`)
+  if (status === 'completed') {
+    window.location.href = fileUrl  // 下载文件
+  } else if (status === 'processing') {
+    updateProgressBar(progress)
+    setTimeout(() => pollStatus(taskId), 2000)
+  }
+}
+
+// 后端：分页查询 + 流式写入
+for (let page = 1; ; page++) {
+  const data = await Order.find().skip((page-1)*10000).limit(10000).lean()
+  if (data.length === 0) break
+  
+  data.forEach(row => worksheet.addRow(row).commit())  // 立即提交，释放内存
+  await updateProgress(taskId, page * 10000 / totalCount * 100)
+}
+```
+
+---
+
+#### 4. 优化细节
+
+**数据库优化：**
+- 只查询需要的字段（\`.select('orderNo amount status')\`）
+- 使用 \`.lean()\` 跳过 Mongoose 的 hydration，返回纯 JS 对象
+- 添加索引，加速查询
+
+**内存优化：**
+- 分页查询，避免一次性加载全部数据
+- 流式写入，每 1000 行提交一次
+- 查询完一批立即写入，不积累在内存中
+
+**并发控制：**
+- 用 Redis 限流：同一用户 1 分钟内最多导出 3 次
+- Bull 队列控制并发数（concurrency: 5）
+
+**用户体验：**
+- 实时显示进度（查询、生成、上传分阶段）
+- 导出历史记录（用户可查看之前的导出文件）
+- 失败重试机制
+
+**运维优化：**
+- 定时任务清理 7 天前的导出文件
+- 添加导出日志（审计、统计）
+- 监控队列堆积情况，及时告警
+
+---
+
+#### 5. 常见问题
+
+**问题 1：CSV 中文乱码**
+- **原因：** Excel 默认使用 GBK 编码打开 CSV
+- **解决：** 文件开头添加 BOM 头（\`\\uFEFF\`），强制使用 UTF-8
+
+**问题 2：订单号显示为科学计数法**
+- **原因：** Excel 自动将长数字转换
+- **解决：** 单元格格式设置为文本（\`numFmt = '@'\`）或数字前加制表符（\`\\t202401010001\`）
+
+**问题 3：进度不准确**
+- **原因：** 查询、生成、上传耗时不均衡
+- **解决：** 分阶段计算进度（查询 40%、生成 50%、上传 10%）
+
+---
+
+### 二、大文件上传（分片上传 + 断点续传 + 秒传）
+
+#### 1. 问题场景
+
+**真实业务：** 视频网站上传视频（500MB-5GB）、企业网盘上传大文件、OA 系统上传附件。
+
+**传统方案的痛点：**
+- 文件过大导致上传超时（浏览器/Nginx 限制）
+- 网络波动导致上传失败，需要重新上传整个文件
+- 无法显示真实进度（HTTP 上传进度不可靠）
+- 占用主线程，页面卡顿
+
+---
+
+#### 2. 技术方案对比
+
+| 方案 | 优点 | 缺点 | 适用场景 |
+|------|------|------|---------|
+| **普通上传** | 简单 | 大文件易失败，无断点续传 | 小文件（<10MB） |
+| **分片上传** | 支持大文件，失败可重试单个分片 | 实现复杂 | **推荐：大文件** |
+| **断点续传** | 网络中断后可继续 | 需要服务端支持 | 网络不稳定场景 |
+| **秒传** | 相同文件无需重复上传 | 需要计算文件 hash | 重复文件多的场景 |
+
+---
+
+#### 3. 完整方案：分片 + 断点续传 + 秒传
+
+**核心流程：**
+
+```
+1. 【秒传检查】计算文件 MD5 → 查询服务端是否已存在 → 存在则秒传
+2. 【分片切割】文件按 5MB 切片 → 生成每个分片的 hash
+3. 【断点检查】查询哪些分片已上传 → 跳过已上传的分片
+4. 【并发上传】使用 Promise.all 并发上传（限制并发数 3-5）
+5. 【进度计算】实时更新进度条（已上传分片数 / 总分片数）
+6. 【合并分片】全部上传完成后，通知服务端合并文件
+7. 【错误重试】上传失败的分片自动重试 3 次
+```
+
+---
+
+#### 4. 关键技术点详解
+
+**（1）文件分片**
+
+```js
+// 将文件切分为多个分片（每片 5MB）
+const CHUNK_SIZE = 5 * 1024 * 1024
+const chunks = []
+for (let i = 0; i < file.size; i += CHUNK_SIZE) {
+  chunks.push(file.slice(i, i + CHUNK_SIZE))
+}
+```
+
+**（2）计算文件 Hash（秒传关键）**
+
+- **问题：** 大文件全量计算 MD5 耗时长（2GB 文件需 10s+）
+- **优化：** 使用 **Spark-MD5** + **抽样计算**
+
+```js
+// 抽样策略：首尾全取，中间每 2MB 取 2MB
+function calculateHash(file) {
+  return new Promise(resolve => {
+    const spark = new SparkMD5.ArrayBuffer()
+    const chunks = []
+    
+    // 首尾各 2MB
+    chunks.push(file.slice(0, 2 * 1024 * 1024))
+    chunks.push(file.slice(file.size - 2 * 1024 * 1024))
+    
+    // 中间每隔 2MB 抽样 2MB
+    for (let i = 2 * 1024 * 1024; i < file.size - 2 * 1024 * 1024; i += 4 * 1024 * 1024) {
+      chunks.push(file.slice(i, i + 2 * 1024 * 1024))
+    }
+    
+    // 使用 FileReader 读取并计算 hash
+    // ...（省略具体实现）
+  })
+}
+```
+
+**优化效果：** 2GB 文件 hash 计算从 10s 降到 1s
+
+---
+
+**（3）并发控制**
+
+- **问题：** 同时上传所有分片会占用大量带宽，导致单个分片速度变慢
+- **解决：** 使用 **并发池**，限制同时上传的分片数量（推荐 3-5 个）
+
+```js
+// 并发控制器（限制同时上传 3 个分片）
+async function uploadWithLimit(chunks, limit = 3) {
+  const results = []
+  const executing = []
+  
+  for (const chunk of chunks) {
+    const promise = uploadChunk(chunk).then(() => {
+      executing.splice(executing.indexOf(promise), 1)
+    })
+    
+    results.push(promise)
+    executing.push(promise)
+    
+    if (executing.length >= limit) {
+      await Promise.race(executing)  // 等待任意一个完成
+    }
+  }
+  
+  return Promise.all(results)
+}
+```
+
+---
+
+**（4）断点续传**
+
+- **原理：** 每个分片上传成功后，将分片索引存储在 **localStorage**
+- **恢复：** 页面刷新后，读取已上传的分片列表，跳过已上传的
+
+```js
+// 上传前检查已上传的分片
+const uploadedChunks = JSON.parse(localStorage.getItem(\`upload_\${fileHash}\`)) || []
+const needUpload = chunks.filter((_, index) => !uploadedChunks.includes(index))
+
+// 上传成功后记录
+function onChunkSuccess(index) {
+  uploadedChunks.push(index)
+  localStorage.setItem(\`upload_\${fileHash}\`, JSON.stringify(uploadedChunks))
+}
+
+// 全部完成后清除记录
+function onComplete() {
+  localStorage.removeItem(\`upload_\${fileHash}\`)
+}
+```
+
+---
+
+**（5）进度计算**
+
+- **分片级进度：** 已上传分片数 / 总分片数（不够精确）
+- **字节级进度：** 使用 \`XMLHttpRequest.upload.onprogress\` 监听每个分片的上传进度
+
+```js
+let uploadedBytes = 0
+const totalBytes = file.size
+
+function uploadChunk(chunk, index) {
+  const xhr = new XMLHttpRequest()
+  
+  xhr.upload.onprogress = (e) => {
+    const chunkProgress = e.loaded
+    const totalProgress = (uploadedBytes + chunkProgress) / totalBytes * 100
+    updateProgressBar(totalProgress)
+  }
+  
+  xhr.onload = () => {
+    uploadedBytes += chunk.size
+  }
+  
+  // 发送请求...
+}
+```
+
+---
+
+**（6）错误重试**
+
+```js
+async function uploadChunkWithRetry(chunk, index, maxRetry = 3) {
+  for (let i = 0; i < maxRetry; i++) {
+    try {
+      await uploadChunk(chunk, index)
+      return
+    } catch (error) {
+      if (i === maxRetry - 1) throw error
+      await sleep(1000 * (i + 1))  // 指数退避
+    }
+  }
+}
+```
+
+---
+
+#### 5. 服务端实现要点
+
+**分片存储：**
+- 每个分片上传到临时目录（\`/tmp/uploads/\${fileHash}/\${chunkIndex}\`）
+- 使用文件 hash 作为目录名，避免不同用户上传同名文件冲突
+
+**分片合并：**
+```js
+// Node.js 示例
+const fs = require('fs')
+const path = require('path')
+
+async function mergeChunks(fileHash, totalChunks) {
+  const chunkDir = \`/tmp/uploads/\${fileHash}\`
+  const outputPath = \`/uploads/\${fileHash}.mp4\`
+  const writeStream = fs.createWriteStream(outputPath)
+  
+  for (let i = 0; i < totalChunks; i++) {
+    const chunkPath = path.join(chunkDir, \`\${i}\`)
+    const data = fs.readFileSync(chunkPath)
+    writeStream.write(data)
+    fs.unlinkSync(chunkPath)  // 删除已合并的分片
+  }
+  
+  writeStream.end()
+  fs.rmdirSync(chunkDir)  // 删除临时目录
+}
+```
+
+**秒传实现：**
+```js
+// 查询文件是否已存在
+const existingFile = await File.findOne({ hash: fileHash })
+if (existingFile) {
+  return res.json({ 
+    uploaded: true, 
+    url: existingFile.url 
+  })
+}
+```
+
+---
+
+#### 6. 优化技巧
+
+**Web Worker 计算 Hash：**
+- 在主线程计算 hash 会阻塞页面
+- 使用 Web Worker 在后台线程计算
+
+```js
+// 主线程
+const worker = new Worker('hash-worker.js')
+worker.postMessage({ file })
+worker.onmessage = (e) => {
+  const hash = e.data
+  // 继续上传流程
+}
+
+// hash-worker.js
+self.onmessage = async (e) => {
+  const hash = await calculateHash(e.data.file)
+  self.postMessage(hash)
+}
+```
+
+**分片大小选择：**
+- 太小（1MB）：分片数量多，HTTP 请求开销大
+- 太大（10MB）：单个分片传输时间长，失败重传代价高
+- **推荐：5MB**（平衡点）
+
+**并发数选择：**
+- 太少（1个）：无法充分利用带宽
+- 太多（10个）：占用资源多，单个分片速度慢
+- **推荐：3-5 个**（根据网络环境调整）
+
+**上传策略：**
+- 先上传**第一片和最后一片**（快速验证文件完整性）
+- 中间分片按顺序上传
+
+---
+
+#### 7. 用户体验优化
+
+**进度显示：**
+```
+上传中... 45%  (已上传 225MB / 共 500MB)
+预计剩余时间: 2分30秒
+当前速度: 5.2 MB/s
+```
+
+**暂停/恢复：**
+- 暂停：取消未完成的请求，保留已上传记录
+- 恢复：从断点继续上传
+
+**后台上传：**
+- 页面关闭后继续上传（Service Worker）
+- 上传完成后发送通知
+
+**文件校验：**
+- 上传完成后校验文件完整性（服务端计算 hash 对比）
+
+---
+
+#### 8. 常见问题
+
+**问题 1：分片顺序错乱**
+- **原因：** 并发上传导致分片到达服务端的顺序不一致
+- **解决：** 每个分片携带索引号，合并时按索引排序
+
+**问题 2：上传进度倒退**
+- **原因：** 重试失败的分片时，进度重新计算
+- **解决：** 区分\"已上传\"和\"上传中\"的字节数
+
+**问题 3：Nginx 上传大小限制**
+- **错误：** \`413 Request Entity Too Large\`
+- **解决：** 修改 Nginx 配置
+  ```nginx
+  client_max_body_size 100M;  # 允许上传 100MB
+  ```
+
+**问题 4：跨域问题**
+- **解决：** 服务端配置 CORS
+  ```js
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  ```
+
+---
+
+#### 9. 方案对比总结
+
+| 功能 | 普通上传 | 分片上传 | 分片+断点续传 | 完整方案（+秒传） |
+|------|---------|---------|-------------|----------------|
+| 大文件支持 | ❌ | ✅ | ✅ | ✅ |
+| 断点续传 | ❌ | ❌ | ✅ | ✅ |
+| 秒传 | ❌ | ❌ | ❌ | ✅ |
+| 进度精确 | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| 用户体验 | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| 实现复杂度 | 简单 | 中等 | 较复杂 | 复杂 |
+
+---
+
+#### 10. 面试回答模板
+
+**面试官问：** \"你们项目中大文件上传是怎么实现的？\"
+
+**参考回答：**
+
+> \"我们项目中有视频上传功能，单个视频可能达到 2-3GB，传统的一次性上传方案有几个问题：
+>
+> 1️⃣ **容易超时**：大文件上传时间长，网络波动会导致失败
+> 2️⃣ **无法断点续传**：失败后需要重新上传整个文件
+> 3️⃣ **进度不准确**：HTTP 上传进度不可靠
+>
+> **我们采用了分片上传 + 断点续传 + 秒传的完整方案：**
+>
+> **核心流程：**
+> - 文件按 **5MB 切片**，生成文件 hash（使用抽样算法优化速度）
+> - **秒传检查**：先查询服务端是否已存在相同文件
+> - **断点检查**：查询哪些分片已上传，跳过已完成的
+> - **并发上传**：使用并发池限制同时上传 3-5 个分片
+> - 全部完成后通知服务端**合并分片**
+>
+> **技术细节：**
+> - **Web Worker 计算 hash**：不阻塞主线程
+> - **localStorage 存储断点**：刷新页面可恢复
+> - **XMLHttpRequest 监听进度**：字节级精确进度
+> - **自动重试机制**：失败自动重试 3 次，指数退避
+>
+> **优化效果：**
+> - 2GB 视频上传成功率从 60% 提升到 **98%**
+> - 支持断点续传，网络中断后可继续
+> - 相同文件秒传，节省带宽和时间
+> - 用户体验好，实时显示进度和剩余时间\"
+
+---
+
+#### 11. 扩展知识
+
+**WebRTC 实现 P2P 文件传输：**
+- 适用于局域网内大文件传输
+- 无需经过服务器，速度快
+
+**OSS 直传：**
+- 前端直接上传到阿里云 OSS/七牛云
+- 使用 STS 临时凭证，安全可控
+- 减轻业务服务器压力
+
+**HTTP/2 多路复用：**
+- HTTP/2 支持多路复用，可以优化并发上传
+- 单个 TCP 连接传输多个分片
+
+---
+
+### 前端登录认证方案
+
+#### 一、Cookie + Session（传统方案）
+
+**流程：**
+1. 用户登录 → 服务端创建 Session，存储用户信息，生成 SessionID
+2. 服务端将 SessionID 写入响应的 Cookie 中返回给浏览器
+3. 浏览器后续请求自动携带 Cookie（含 SessionID）
+4. 服务端根据 SessionID 查找 Session，验证身份
+
+**缺点：**
+- 服务端需要存储所有用户的 Session，内存压力大
+- 分布式/集群部署时，多台服务器无法共享 Session（需要 Redis 等中间件同步）
+- Cookie 跨域受限，不适合跨域接口
+
+#### 二、Token 方案
+
+**流程：**
+1. 用户登录 → 服务端生成 Token（含用户信息的签名字符串）返回给前端
+2. 前端将 Token 存储在 localStorage / sessionStorage
+3. 后续请求在 Header 中携带 Token：`Authorization: Bearer <token>`
+4. 服务端验证 Token 签名，无需查数据库
+
+**优点：**
+- 服务端无状态，不需要存储 Session
+- 天然支持跨域
+- 适合分布式、微服务架构
+
+**缺点：**
+- Token 一旦签发无法主动失效（除非加黑名单）
+- Token 被盗无法撤回
+
+#### 三、JWT（JSON Web Token）
+
+JWT 是 Token 的一种具体实现格式，由三部分组成（Base64编码，用 `.` 分隔）：
+
+```
+Header.Payload.Signature
+```
+
+- **Header**：算法类型（如 HS256）
+- **Payload**：用户信息（uid、角色、过期时间等，明文！勿存敏感数据）
+- **Signature**：用密钥对前两部分签名，防止篡改
+
+```js
+// Payload 示例
+{
+  "uid": 123,
+  "role": "admin",
+  "exp": 1714000000  // 过期时间戳
+}
+```
+
+**JWT 的核心问题：无法主动失效**
+
+JWT 是无状态的，服务端不存储它，所以：
+- 用户登出 → 只能靠前端删除 Token，服务端无法让它立即失效
+- 用户被封号 → Token 在过期前仍然有效
+
+**解决方案：**
+- 服务端维护 Token 黑名单（Redis 存已注销的 Token）
+- 缩短 Token 有效期 + 双 Token 方案
+
+#### 四、双 Token 方案（Access Token + Refresh Token）
+
+**核心思路：** 用两个 Token 分工，解决"安全性"和"用户体验"的矛盾
+
+| | Access Token | Refresh Token |
+|---|---|---|
+| 有效期 | 短（15分钟~2小时） | 长（7天~30天） |
+| 用途 | 访问业务接口 | 换取新的 Access Token |
+| 存储位置 | 内存 / localStorage | HttpOnly Cookie（更安全） |
+| 传输方式 | 每次请求 Header 携带 | 只在刷新时携带 |
+
+**流程：**
+1. 用户登录 → 服务端返回 Access Token（短期）+ Refresh Token（长期）
+2. 正常请求携带 Access Token
+3. Access Token 过期 → 前端用 Refresh Token 请求 `/refresh` 接口，换取新的 Access Token
+4. Refresh Token 也过期 → 强制重新登录
+
+**优点：**
+- Access Token 有效期短，即使被盗，损失时间窗口小
+- 用户无需频繁重新登录（Refresh Token 长期有效）
+- Refresh Token 存在 HttpOnly Cookie 中，JS 无法读取，防 XSS
+
+**前端实现（axios 拦截器自动刷新）：**
+
+```js
+// 响应拦截器：捕获 401，自动刷新 token
+let isRefreshing = false
+let waitQueue = []  // 等待刷新期间的请求队列
+
+axios.interceptors.response.use(null, async (error) => {
+  const { config, response } = error
+  if (response?.status !== 401) return Promise.reject(error)
+
+  if (!isRefreshing) {
+    isRefreshing = true
+    try {
+      const { data } = await axios.post('/auth/refresh')  // 用 refresh token 换新 token
+      const newToken = data.accessToken
+      localStorage.setItem('token', newToken)
+      waitQueue.forEach(cb => cb(newToken))  // 通知队列中等待的请求
+      waitQueue = []
+      return axios({ ...config, headers: { Authorization: `Bearer ${newToken}` } })
+    } catch {
+      // refresh token 也过期，强制登出
+      localStorage.clear()
+      router.push('/login')
+    } finally {
+      isRefreshing = false
+    }
+  }
+
+  // 刷新进行中，其他请求进入等待队列
+  return new Promise(resolve => {
+    waitQueue.push(token => {
+      resolve(axios({ ...config, headers: { Authorization: `Bearer ${token}` } }))
+    })
+  })
+})
+```
+
+#### 五、单点登录（SSO，Single Sign-On）
+
+**核心思想：** 用户只需登录一次，即可访问多个相互信任的子系统。
+
+**核心角色：认证中心（Auth Server / SSO Server）**
+
+认证中心统一管理用户身份，维护全局 Session（通过 SID 映射用户信息），各子系统**不自己验证用户身份**，都需要和认证中心核对。
+
+**SSO 登录流程：**
+
+```
+用户访问 子系统A（app1.com）
+    ↓ 未登录，重定向到认证中心
+认证中心（sso.com）展示登录页
+    ↓ 用户输入账号密码，认证中心验证
+认证中心创建全局 Session（SID），写入 sso.com 的 Cookie
+    ↓ 认证中心生成 Ticket（一次性凭证），重定向回 app1.com?ticket=xxx
+子系统A 拿到 Ticket，去认证中心验证：
+    app1.com → sso.com：这个 ticket 是否有效？
+    sso.com → app1.com：有效，用户是 xxx
+子系统A 建立自己的局部 Session，用户登录成功
+    ↓ 用户访问 子系统B（app2.com）
+子系统B 未登录，重定向到认证中心
+    ↓ 认证中心发现 sso.com 的 Cookie（全局 Session）还在
+直接生成新 Ticket 重定向回 app2.com，无需再次输入密码
+子系统B 同样去认证中心验证 Ticket，登录成功
+```
+
+**关键点：**
+- 认证中心维护**全局 Session**（SID → 用户信息）
+- 各子系统维护**局部 Session**，互相独立
+- Ticket 是**一次性**的，用完即废，防止重放攻击
+- 跨域通过**重定向 + URL 参数传递 Ticket** 解决 Cookie 跨域问题
+
+**SSO 登出流程：**
+
+```
+用户在 子系统A 点击登出
+    ↓
+子系统A 通知认证中心：销毁全局 Session（SID 失效）
+    ↓
+认证中心通知所有已登录的子系统：各自销毁局部 Session
+    ↓
+所有子系统同步登出
+```
+
+**前端实现要点：**
+
+```js
+// 检查是否已登录，否则跳转认证中心
+function checkAuth() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    const redirectUrl = encodeURIComponent(window.location.href)
+    window.location.href = `https://sso.com/login?redirect=${redirectUrl}`
+  }
+}
+
+// 认证中心回调页面（处理 ticket）
+const ticket = new URLSearchParams(location.search).get('ticket')
+if (ticket) {
+  // 用 ticket 换 token
+  const res = await axios.post('/auth/verify-ticket', { ticket })
+  localStorage.setItem('token', res.data.token)
+  // 清除 URL 中的 ticket 参数
+  history.replaceState(null, '', location.pathname)
+}
+```
+
+#### 六、方案对比总结
+
+| 方案 | 适用场景 | 服务端存储 | 跨域 | 主动失效 |
+|------|---------|-----------|------|---------|
+| Cookie + Session | 单体应用 | 需要（Session） | 不支持 | 支持 |
+| Token（JWT） | 前后端分离、移动端 | 不需要 | 支持 | 不支持（需黑名单） |
+| 双 Token | 安全要求高的应用 | 需要（Refresh Token） | 支持 | 支持（Refresh Token） |
+| SSO 单点登录 | 多系统统一登录（企业内网、平台） | 需要（全局Session） | 通过重定向解决 | 支持 |
