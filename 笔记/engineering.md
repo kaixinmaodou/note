@@ -1,12 +1,12 @@
-# 工程化
+﻿# 工程化
 
 > **工程化，为复杂应用而生**
 >
 > 本文为保持简单，牺牲了某些语言的准确性
 
-# 模块化
+## 模块化
 
-## 为什么需要模块化
+### 为什么需要模块化
 
 当前端工程到达一定规模后，就会出现下面的问题:
 
@@ -20,7 +20,7 @@
 
 模块化出现后，我们就可以把臃肿的代码细分到各个小文件中，便于后期维护管理
 
-## 前端模块化标准
+### 前端模块化标准
 
 前端主要有两大模块化标准:
 
@@ -33,7 +33,7 @@
 >
 > <img src="./img/engineeringImg/模块化.png" alt="模块化" style="zoom: 50%;" />
 
-## CommonJS
+### CommonJS
 
 > 标准类型: 社区规范
 >
@@ -41,7 +41,7 @@
 >
 > 依赖类型: 动态依赖 ==依赖延迟声明==
 
-### CommonJS 规范
+#### CommonJS 规范
 
 CommonJS 使用 ==exports== 导出模块，==require== 导入模块
 
@@ -52,7 +52,7 @@ CommonJS 使用 ==exports== 导出模块，==require== 导入模块
 3. 如果一个模块需要暴露一些 API 提供给外部使用，需要通过`exports`导出，`exports`是一个空的对象，你可以为该对象添加任何需要导出的内容
 4. 如果一个模块需要导入其他模块，通过`require`实现，`require`是一个函数，传入模块的路径即可返回该模块导出的整个内容
 
-### CommonJS 如何实现模块化
+#### CommonJS 如何实现模块化
 
 node 天生支持 CommonJS 模块化标准
 
@@ -100,16 +100,16 @@ node 规定:
 
 <img src="./img/engineeringImg/CMD-缓存.png" alt="CMD-缓存" style="zoom: 80%;" />
 
-### 特点
+#### 特点
 
 - 所有代码都运行在模块作用域，不会污染全局作用域
 - 模块是同步加载的，即只有加载完成，才能执行后面的操作
 - 模块在首次执行后就会缓存，再次加载只返回缓存结果，如果想要再次执行，可清除缓存
 - `require`返回的值是被输出的值的拷贝，模块内部的变化也不会影响这个值
 
-## AMD、CMD
+### AMD、CMD
 
-### 浏览器端模块化的难题
+#### 浏览器端模块化的难题
 
 **CommonJS 的工作原理**
 
@@ -144,7 +144,7 @@ node 规定:
 
 基于这种简单有效的思路，出现了 AMD 和 CMD 规范，有效的解决了浏览器模块化的问题。
 
-### AMD
+#### AMD
 
 全称是 Asynchronous Module Definition，即异步模块加载机制
 
@@ -171,7 +171,7 @@ define((require, exports, module) => {
 });
 ```
 
-### CMD
+#### CMD
 
 全称是 Common Module Definition，公共模块定义规范
 
@@ -199,7 +199,7 @@ define((require, exports, module) => {
 })
 ```
 
-## ES Module
+### ES Module
 
 > 标准类型: 官方标准
 > 支持环境: node，浏览器
@@ -219,7 +219,7 @@ ES6 模块化具有以下的特点
 2. 灵活的多种导入导出方式
 3. 规范的路径表示法: 所有路径必须以./或../开头
 
-### 导入导出
+#### 导入导出
 
 目前，浏览器使用以下方式引入一个 ES6 模块文件
 
@@ -232,7 +232,7 @@ ES Module 分为两种导出方式:
 -   具名导出（基本导出），可以导出多个
 -   默认导出，只能导出一个
 
-#### 基本导出
+##### 基本导出
 
 类似于 **exports.xxx = xxxx**
 
@@ -248,7 +248,7 @@ export {具名符号}
 
 由于基本导出必须具有名称，所以要求导出内容必须跟上**声明表达式**或**具名符号**
 
-#### 基本导入
+##### 基本导入
 
 由于使用的是**依赖预加载**，因此，导入任何其他模块，导入代码必须放置到所有代码之前
 
@@ -264,7 +264,7 @@ import { 导入的符号列表 } from '模块路径';
 -   ==导入时使用的符号是常量，不可修改==
 -   ==可以使用\*号导入所有的基本导出，形成一个对象==
 
-#### 默认导出
+##### 默认导出
 
 每个模块，除了允许有多个基本导出之外，还允许有一个默认导出
 
@@ -280,7 +280,7 @@ export {默认导出的数据 as default}
 
 由于每个模块仅允许有一个默认导出，因此，每个模块不能出现多个默认导出语句
 
-#### 默认导入
+##### 默认导入
 
 需要想要导入一个模块的默认导出，需要使用下面的语法
 
@@ -359,7 +359,7 @@ import('模块路径'); // 动态导入，返回一个Promise，完成时的数�
 
 <img src="./img/engineeringImg/ESModule-动态导入.png" alt="ESModule-动态导入" style="zoom:80%;" />
 
-#### ES6 模块化的其他细节
+##### ES6 模块化的其他细节
 
 1. **尽量导出不可变值**
 
@@ -383,7 +383,7 @@ import '模块路径';
 export { 绑定的标识符 } from '模块路径';
 ```
 
-## 总结
+### 总结
 
 1. AMD/CMD/CommonJs 是 js 模块化开发的规范，对应的实现是 require.js/sea.js/Node.js
 
@@ -427,27 +427,27 @@ export { 绑定的标识符 } from '模块路径';
 
 6. 如何使用？CommonJs 的话，因为 NodeJS 就是它的实现，所以使用 node 就行，也不用引入其他包。AMD 则是通过`<script>`标签引入 require.js，CMD 则是引入 sea.js
 
-# nvm (node version manger)
+## nvm (node version manger)
 
-## 卸载 node
+### 卸载 node
 
-### windows
+#### windows
 
 进入添加和删除程序进行卸载
 
-### mac
+#### mac
 
 https://www.jianshu.com/p/88cd55296983
 
-## 下载安装 nvm
+### 下载安装 nvm
 
-### windows
+#### windows
 
 链接: https://pan.baidu.com/s/1uoxlk8CVNHV2KTCwIGbQMQ?pwd=yi5m
 
 提取码: yi5m
 
-### mac
+#### mac
 
 修改 HOSTS（建议使用 SwitchHosts）
 
@@ -465,7 +465,7 @@ https://www.jianshu.com/p/88cd55296983
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
 ```
 
-## nvm 的基本使用
+### nvm 的基本使用
 
 ```shell
 nvm install --lts # 下载最新的稳定版
@@ -489,7 +489,7 @@ nvm uninstall <版本号> # 删除指定版本
 nvm list available # 查看线上所有版本
 ```
 
-## node 常用命令
+### node 常用命令
 
 ```bash
 npm init # 初始化node环境，-y可以快速初始化
@@ -499,13 +499,13 @@ npm list --depth 0 # 查看当前目录下载的node包
 npm list -g --depth 0 # 查看全局安装的node包
 ```
 
-# 包管理器
+## 包管理器
 
 npm 官网: https://www.npmjs.com/
 
 npm 全命令: https://docs.npmjs.com/cli/v7/commands
 
-## 概念
+### 概念
 
 1. 什么是**包**？
 
@@ -529,7 +529,7 @@ npm 全命令: https://docs.npmjs.com/cli/v7/commands
 
     cli 是一个命令行工具，它提供一个终端命令，通过该命令可以完成一些功能
 
-## node 查找包的顺序
+### node 查找包的顺序
 
 ```js
 require('a');
@@ -539,40 +539,40 @@ require('a');
 2. 查找当前目录的 node_modules 中是否有 a
 3. 依次查找上级目录的 node_modules 中是否有 a，直到根目录
 
-## npm
+### npm
 
 > node package manager
 
-### 配置源
+#### 配置源
 
-#### 查看源
+##### 查看源
 
 ```shell
 npm config get registry
 ```
 
-#### 配置淘宝镜像源
+##### 配置淘宝镜像源
 
 ```shell
 npm config set registry https://registry.npm.taobao.org
 ```
 
-#### 配置官方源
+##### 配置官方源
 
 ```shell
 npm config set registry https://registry.npmjs.org/
 ```
 
-### 初始化
+#### 初始化
 
 ```shell
 npm init # 初始化工程，帮助生成 package.json 文件
 npm init -y # 初始化工程，全部使用默认配置生成 package.json 文件
 ```
 
-### 安装
+#### 安装
 
-#### 本地安装
+##### 本地安装
 
 会将包下载到当前命令行所在目录的 node_modules 中
 
@@ -601,7 +601,7 @@ npm install
 npm install --production # 仅还原dependencies中的依赖
 ```
 
-#### 全局安装
+##### 全局安装
 
 会将包下载到一个全局的位置
 
@@ -613,7 +613,7 @@ npm install -g 包名
 npm install -g 包名@版本号
 ```
 
-### 包配置
+#### 包配置
 
 目前遇到的问题:
 
@@ -623,7 +623,7 @@ npm install -g 包名@版本号
 
 以上这些问题都需要通过包的**配置文件**解决
 
-#### 配置文件
+##### 配置文件
 
 npm 将每个使用 npm 的工程本身都看作是一个包，包的信息需要通过一个名称固定的配置文件来描述
 
@@ -650,7 +650,7 @@ npm 将每个使用 npm 的工程本身都看作是一个包，包的信息需�
 
 使用`npm init --yes`或`npm init -y`可以在生成配置文件时自动填充默认配置
 
-#### 保存依赖关系
+##### 保存依赖关系
 
 大部分时候，我们仅仅是开发项目，并不会把它打包发布出去，尽管如此，我们仍然需要 package.json 文件
 
@@ -702,9 +702,9 @@ npm i -D 包名
 
 > 自动保存的依赖版本，例如`^15.1.3`，这种书写方式叫做语义版本号（semver version），具体规则后续讲解
 
-### 卸载
+#### 卸载
 
-#### 本地卸载
+##### 本地卸载
 
 卸载本地的安装包
 
@@ -713,7 +713,7 @@ npm i -D 包名
 npm uninstall 包名
 ```
 
-#### 全局卸载
+##### 全局卸载
 
 卸载全局的安装包
 
@@ -722,14 +722,14 @@ npm uninstall 包名
 npm uninstall -g 包名
 ```
 
-### 查看包所有的版本
+#### 查看包所有的版本
 
 ```shell
 # view 可以替换为 v
 npm view 包名 versions
 ```
 
-### 语义版本
+#### 语义版本
 
 思考: 如果你编写了一个包 A，依赖另外一个包 B，你在编写代码时，包 B 的版本是 2.4.1，你是希望使用你包的人一定要安装包 B，并且是 2.4.1 版本，还是希望他可以安装更高的版本，如果你希望它安装更高的版本，高的什么程度呢？
 
@@ -765,7 +765,7 @@ npm view 包名 versions
 |  ^   | 此版本和补丁版本可增 |    ^1.3.4     | 保证主版本号是 1，次版本号可以大于等于 3，补丁版本号可以大于等于 4 |
 |  \*  |       最新版本       |      \*       |                          始终安装最新版本                          |
 
-### 避免还原的差异
+#### 避免还原的差异
 
 版本依赖控制始终是一个两难的问题
 
@@ -779,7 +779,7 @@ npm view 包名 versions
 
 当移植工程时，如果移植了 package-lock.json 文件，恢复安装时，会按照 package-lock.json 文件中的确切依赖进行安装，最大限度的避免了差异
 
-### [扩展]npm 的差异版本处理
+#### [扩展]npm 的差异版本处理
 
 如果两个包依赖同一个包的不同版本，如下图
 
@@ -803,7 +803,7 @@ npm view 包名 versions
 │   │   │── b包的文件
 ```
 
-### npm 脚本 （npm scripts）
+#### npm 脚本 （npm scripts）
 
 在开发的过程中，我们可能会反复使用很多的 CLI 命令，例如:
 
@@ -830,7 +830,7 @@ npm view 包名 versions
 -   脚本中可以省略 npx
 -   start 脚本有默认值: node server.js
 
-### 运行环境配置
+#### 运行环境配置
 
 我们书写的代码一般有三种运行环境:
 
@@ -874,7 +874,7 @@ if (process.env.NODE_ENV === 'development') {
 console.log(a);
 ```
 
-#### 在 node 中读取 package.json
+##### 在 node 中读取 package.json
 
 有的时候，我们可能在 package.json 中配置一些自定义的字段，这些字段需要在 node 中读取
 在 node 中，可以直接导入一个 json 格式的文件，它会自动将其转换为 js 对象
@@ -906,9 +906,9 @@ console.log(config.version);
 console.log(config.a);
 ```
 
-### 其他 npm 命令
+#### 其他 npm 命令
 
-#### 安装
+##### 安装
 
 1. 精确安装最新版本
 
@@ -923,7 +923,7 @@ npm install -E 包名
 npm install 包名@版本号
 ```
 
-#### 查询
+##### 查询
 
 1. 查询包安装路径
 
@@ -945,7 +945,7 @@ npm list [-g] [--depth=依赖深度]
 ## list aliases: ls  la  ll
 ```
 
-#### 更新
+##### 更新
 
 1. 检查有哪些包需要更新
 
@@ -960,14 +960,14 @@ npm update [-g] [包名]
 ## update 别名（aliases）：up、upgrade
 ```
 
-#### 卸载包
+##### 卸载包
 
 ```shell
 npm uninstall [-g] 包名
 ## uninstall aliases: remove, rm, r, un, unlink
 ```
 
-#### npm 配置
+##### npm 配置
 
 npm 的配置会对其他命令产生或多或少的影响
 
@@ -1001,11 +1001,11 @@ npm config set 配置项=值
 npm config delete 配置项
 ```
 
-## yarn
+### yarn
 
 > yarn 官网: https://www.yarnpkg.com/zh-Hans/
 
-### 介绍
+#### 介绍
 
 yarn 是由 Facebook、Google、Exponent 和 Tilde 联合推出了一个新的 JS 包管理工具，**它仍然使用 npm 的 registry**，不过提供了全新 CLI 来对包进行管理
 
@@ -1049,7 +1049,7 @@ yarn 的出现给 npm 带来了巨大的压力，很快，npm 学习了 yarn 先
 
 npm6 之后，可以说 npm 已经和 yarn 非常接近，甚至没有差距了。很多新的项目，又重新从 yarn 转回到 npm。
 
-### yarn 的核心命令
+#### yarn 的核心命令
 
 1. **初始化**
 
@@ -1089,7 +1089,7 @@ npm6 之后，可以说 npm 已经和 yarn 非常接近，甚至没有差距了�
 
 卸载包: `yarn remove 包名`
 
-### yarn 的特别礼物
+#### yarn 的特别礼物
 
 在终端命令上，yarn 不仅仅是对 npm 的命令做了一个改名，还增加了一些原本没有的命令，这些命令在某些时候使用起来非常方便
 
@@ -1137,7 +1137,7 @@ yarn global add create-react-app
 create-react-app my-app
 ```
 
-## cnpm
+### cnpm
 
 > 官网地址: https://npm.taobao.org/
 
@@ -1147,7 +1147,7 @@ create-react-app my-app
 
 如今，npm 已经支持修改 registry 了，可能 cnpm 唯一的作用就是和 npm 共存，即如果要使用官方源，则使用 npm，如果使用淘宝源，则使用 cnpm
 
-## pnpm
+### pnpm
 
 pnpm 是一种新起的包管理器，从 npm 的下载量看，目前还没有超过 yarn，但它的实现方式值得主流包管理器学习，某些开发者极力推荐使用 pnpm
 
@@ -1161,7 +1161,7 @@ pnpm 是一种新起的包管理器，从 npm 的下载量看，目前还没有�
 
 4. 能极大的降低磁盘空间的占用
 
-### 安装和使用
+#### 安装和使用
 
 全局安装 pnpm
 
@@ -1175,7 +1175,7 @@ npm install -g pnpm
 
 > 比如`npx mocha`执行本地的`mocha`命令时，如果`mocha`没有安装，则 npx 会自动的、临时的安装 mocha，安装好后，自动运行 mocha 命令
 
-### pnpm 原理
+#### pnpm 原理
 
 1. 同 yarn 和 npm 一样，pnpm 仍然使用缓存来保存已经安装过的包，以及使用 pnpm-lock.yaml 来记录详细的依赖版本
 
@@ -1185,15 +1185,15 @@ npm install -g pnpm
 
 3. 由于使用了**符号链接和硬链接**，pnpm 可以规避 windows 操作系统路径过长的问题，因此，它选择使用树形的依赖结果，有着几乎完美的依赖管理。也因为如此，项目中只能使用直接依赖，而不能使用间接依赖
 
-### 注意事项
+#### 注意事项
 
 由于 pnpm 会改动 node_modules 目录结构，使得每个包只能使用直接依赖，而不能使用间接依赖，因此，如果使用 pnpm 安装的包中包含间接依赖，则会出现问题(**现在不会了，除非使用了绝对路径**)
 
 由于 pnpm 超高的安装卸载效率，越来越多的包开始修正之前的间接依赖代码
 
-### pnpm 原理[拓展]
+#### pnpm 原理[拓展]
 
-#### 概念
+##### 概念
 
 > 要彻底理解 pnpm 是怎么做的，需要有一些操作系统知识
 
@@ -1267,7 +1267,7 @@ mklink /d 链接名称 目标文件
 
 **符号链接**: 由于符号链接指向的是另一个文件或目录，当 node 执行符号链接下的 JS 文件时，会使用原始路径。
 
-#### pnpm 原理
+##### pnpm原理
 
 pnpm 使用符号链接和硬链接来构建 node_modules 目录
 
@@ -1307,7 +1307,7 @@ pnpm 使用符号链接和硬链接来构建 node_modules 目录
 
 8. 完成
 
-# Less
+## Less
 
 **Less**是一种更加简洁的样式代码，它非常像 CSS，但又不太一样，它让编写样式变得更容易
 
@@ -1327,7 +1327,7 @@ pnpm 使用符号链接和硬链接来构建 node_modules 目录
 
 **转换代码，称之为编译(compile)，转换代码的工具，称之为编译器(compiler)**
 
-## 体验 Less
+### 体验 Less
 
 1. 新建`index.less`文件，编写下面的`less`代码
 
@@ -1393,7 +1393,7 @@ pnpm 使用符号链接和硬链接来构建 node_modules 目录
 >
 > 这个麻烦只是暂时的，将来很快就可以解决
 
-## Less 的核心语法
+### Less 的核心语法
 
 > Less 官网: https://lesscss.org/
 >
@@ -1415,7 +1415,7 @@ Less 提供了非常多的功能，帮助我们更加轻松的编写 css 代码
 /* 这是普通的css注释，它会生成到编译结果中 */
 ```
 
-# script 标签中 defer 和 async 的区别
+## script 标签中 defer 和 async 的区别
 
 > script 是会阻碍 HTML 解析的，只有下载好并执行完脚本才会继续解析 HTML
 
@@ -1426,9 +1426,9 @@ defer 和 async 有一个共同点: **下载**此类脚本都不会阻止页面�
 
  <img src="./img/defer-sasync区别.awebp" alt="defer-sasync区别.awebp" style="zoom:50%;" />
 
-# webpack 粗略
+## webpack
 
-## 核心
+### 核心
 
 **webpack 是用来搭建前端工程的**
 
@@ -1440,7 +1440,7 @@ defer 和 async 有一个共同点: **下载**此类脚本都不会阻止页面�
 
 **在 webpack 的世界中，一切皆是模块**
 
-## 体验
+### 体验
 
 > 老师提供的工程，以`src/main.js`作为入口文件
 >
@@ -1482,7 +1482,7 @@ defer 和 async 有一个共同点: **下载**此类脚本都不会阻止页面�
 
 webpack 给我们开发带来的变化远不止于此，接下来一一体验
 
-## 页面模板
+### 页面模板
 
 对于单页应用而言，只有一个空白的页面，所有内容都靠 JS 代码创建
 
@@ -1490,11 +1490,11 @@ webpack 会自动生成一个页面，并且在页面中会自动加入对 js �
 
 它生成页面时，参考的是`public/index.html`，其称之为页面模板
 
-## public 目录
+### public 目录
 
 webpack 会非常暴力的将 public 目录中的所有文件（除页面模板外），复制到打包结果中
 
-## 开发服务器
+### 开发服务器
 
 如果每次修改完代码，都要经过`打包->运行`，未免太过麻烦
 
@@ -1508,7 +1508,7 @@ webpack 会非常暴力的将 public 目录中的所有文件（除页面模板�
 
 ![webpack-开发服务器](./img/webpackImg/webpack-开发服务器.png)
 
-## 文件缓存
+### 文件缓存
 
 可以看到，除了页面外，其他的资源在打包完成后，文件名多了一些奇奇怪怪的字符
 
@@ -1530,7 +1530,7 @@ webpack 会非常暴力的将 public 目录中的所有文件（除页面模板�
 
 webpack 会在打包时自动处理 hash 值，并不会对我们写代码造成任何影响，但作为一个前端开发者，有必要了解这一点
 
-## 资源路径
+### 资源路径
 
 **除代码和样式模块外，其他模块被视为资源模块**
 
@@ -1582,7 +1582,7 @@ const url = '/img/1492ea.png'; // ✅
 img.src = url;
 ```
 
-## 缺省的文件和后缀名
+### 缺省的文件和后缀名
 
 导入模块时，所有 js 模块均可省略`.js`，若导入的模块文件名为`index.js`，可省略文件名
 
@@ -1591,7 +1591,7 @@ import './home'; // 若存在home.js，可省略js
 import './movie'; // 若movie是一个目录，此次导入的是 ./movie/index.js
 ```
 
-## 路径别名
+### 路径别名
 
 随着体量的增长，不可避免的，会形成层级极深的目录
 
@@ -1621,7 +1621,7 @@ webpack 提供了别名供我们快速定位到`./src`目录，通常，该别�
 import '@/b/b1'; // @表示src目录，同时省略了index.js
 ```
 
-## js 兼容性
+### js 兼容性
 
 当 webpack 读取到 js 代码时，会自动对其进行兼容性处理
 
@@ -1632,7 +1632,7 @@ import '@/b/b1'; // @表示src目录，同时省略了index.js
 
 你无须知晓具体的配置方式
 
-## 打包压缩
+### 打包压缩
 
 webpack 在打包时，会对所有 js 和 css 代码进行压缩
 
@@ -1644,7 +1644,7 @@ webpack 在打包时，会对所有 js 和 css 代码进行压缩
 
 混淆的作用一方面是为了进一步压缩包体积，另一方面是为了让我们的代码更难被其他人理解利用
 
-## 源码地图 source map
+### 源码地图 source map
 
 我们运行的是 webpack 打包后的结果，而打包后的结果是很难阅读的
 
@@ -1660,7 +1660,7 @@ webpack 在打包时，会对所有 js 和 css 代码进行压缩
 
 你无须关心这一点，但可以自然的从其中获得巨大的便利
 
-## css 工程化
+### css 工程化
 
 webpack 能够识别**所有**的样式代码，包括`css`、`less`、`sass`、`stylus`
 
@@ -1668,7 +1668,7 @@ webpack 能够识别**所有**的样式代码，包括`css`、`less`、`sass`、
 
 除此之外，它还具备以下的神奇能力
 
-### 自动厂商前缀
+#### 自动厂商前缀
 
 css 有很多兼容性问题，解决这些兼容性问题的最常见办法，就是加上厂商前缀。
 
@@ -1695,7 +1695,7 @@ webpack 会根据`.browserlistrc`中指定的浏览器范围，**按需、自动
 
 我们开发无须关心
 
-### css module
+#### css module
 
 css 文件多了后，你怎么保证它们里面没有冲突的类样式？
 
@@ -1744,7 +1744,7 @@ import styles from './index.module.less';
 dom.classList.add(styles.container); // ✅ 属性container中记录的就是container转换后的类名
 ```
 
-## 跨域代理
+### 跨域代理
 
 **大部分时候，为了安全，服务器都是不允许跨域访问的**
 
@@ -1790,7 +1790,7 @@ dom.classList.add(styles.container); // ✅ 属性container中记录的就是con
 
 ![webpack-跨域代理4](./img/webpackImg/webpack-跨域代理4.png)
 
-## webpack 没有那么神奇
+### webpack 没有那么神奇
 
 ![webpack-没有那么神奇](./img/webpackImg/webpack-没有那么神奇.png)
 
@@ -1807,11 +1807,11 @@ webpack 通过插件（plugin）和加载器（loader）将这些技术整合在
 -   `postcss.config.js`，`postcss`的配置文件，做 css 代码转换
 -   `webpack.config.js`，`webpack`的配置文件，整合其他工程化技术，以及配置打包细节、开发服务器、路径别名等等
 
-# Webpack 深入
+### Webpack 深入
 
-## 核心概念
+#### 核心概念
 
-### 5 大核心概念
+##### 5 大核心概念
 
 | 概念 | 作用 | 说明 |
 | --- | --- | --- |
@@ -1821,7 +1821,7 @@ webpack 通过插件（plugin）和加载器（loader）将这些技术整合在
 | **Plugin** | 插件 | 扩展 webpack 功能（打包优化、资源管理、注入环境变量等） |
 | **Mode** | 模式 | `development`（开发）/ `production`（生产）/ `none` |
 
-### 基础配置
+##### 基础配置
 
 ```js
 // webpack.config.js
@@ -1860,7 +1860,7 @@ module.exports = {
 };
 ```
 
-### Loader 执行顺序
+##### Loader 执行顺序
 
 **从右到左、从下到上**
 
@@ -1869,7 +1869,7 @@ module.exports = {
 use: ['style-loader', 'css-loader', 'less-loader']
 ```
 
-### 常用 Loader
+##### 常用 Loader
 
 | Loader | 作用 |
 | --- | --- |
@@ -1882,7 +1882,7 @@ use: ['style-loader', 'css-loader', 'less-loader']
 | `thread-loader` | 多进程打包，加快构建速度 |
 | `vue-loader` | 解析 `.vue` 单文件组件 |
 
-### 常用 Plugin
+##### 常用 Plugin
 
 | Plugin | 作用 |
 | --- | --- |
@@ -1895,7 +1895,7 @@ use: ['style-loader', 'css-loader', 'less-loader']
 | `CopyWebpackPlugin` | 复制静态资源到打包目录 |
 | `BundleAnalyzerPlugin` | 打包分析可视化 |
 
-## 开发模式配置
+#### 开发模式配置
 
 ```js
 // webpack.dev.js
@@ -1921,7 +1921,7 @@ module.exports = merge(common, {
 });
 ```
 
-## 生产模式配置
+#### 生产模式配置
 
 ```js
 // webpack.prod.js
@@ -1956,9 +1956,9 @@ module.exports = merge(common, {
 });
 ```
 
-## 性能优化
+#### 性能优化
 
-### 提升构建速度
+##### 提升构建速度
 
 **1. HMR 热模块替换**
 
@@ -1987,7 +1987,7 @@ const threads = require('os').cpus().length;
 { test: /\.js$/, use: [{ loader: 'thread-loader', options: { workers: threads } }, 'babel-loader'] }
 ```
 
-### 减少代码体积
+##### 减少代码体积
 
 **1. Tree Shaking** — 自动移除未使用代码（ES Module + production 默认开启）
 
@@ -2006,7 +2006,7 @@ const module = await import('./heavy-module.js');
 
 **3. 图片压缩** — `image-minimizer-webpack-plugin`
 
-### 文件指纹策略
+##### 文件指纹策略
 
 | hash 类型 | 说明 | 适用 |
 | --- | --- | --- |
@@ -2016,13 +2016,13 @@ const module = await import('./heavy-module.js');
 
 ---
 
-# Vite
+## Vite
 
-## 概述
+### 概述
 
 Vite 是下一代前端构建工具，开发环境基于原生 ESM，速度极快。
 
-### Vite vs Webpack
+#### Vite vs Webpack
 
 | 对比 | Webpack | Vite |
 | --- | --- | --- |
@@ -2031,14 +2031,14 @@ Vite 是下一代前端构建工具，开发环境基于原生 ESM，速度极�
 | 底层 | 全量打包 | 开发: esbuild；生产: Rollup |
 | 配置 | 复杂 | 开箱即用 |
 
-### Vite 为什么快
+#### Vite 为什么快
 
 1. **开发环境不打包**：利用浏览器原生 ESM
 2. **按需编译**：只编译当前页面用到的模块
 3. **esbuild 预构建**：Go 写的 esbuild 比 JS 工具快 10-100 倍
 4. **HMR 精确更新**：基于 ESM 只更新变化的模块
 
-### 配置文件
+#### 配置文件
 
 ```js
 // vite.config.js
@@ -2068,19 +2068,19 @@ export default defineConfig({
 
 ---
 
-# Babel
+## Babel
 
-## 作用
+### 作用
 
 将 ES6+ 代码转换为向后兼容的 JS。
 
-### 编译流程
+#### 编译流程
 
 ```
 源代码 → 解析(Parser) → AST → 转换(Transform) → 新AST → 生成(Generator) → 目标代码
 ```
 
-### 核心配置
+#### 核心配置
 
 ```js
 // babel.config.js
@@ -2098,13 +2098,13 @@ module.exports = {
 
 ---
 
-# ESLint
+## ESLint
 
-## 作用
+### 作用
 
 ESLint 是 JS/TS 的静态代码分析工具，用于发现和修复代码中的问题（语法错误、风格不一致、潜在 bug 等）。
 
-## 基本配置
+### 基本配置
 
 ```js
 // .eslintrc.js
@@ -2124,7 +2124,7 @@ module.exports = {
 };
 ```
 
-## 常用命令
+### 常用命令
 
 ```bash
 npx eslint .                    # 检查当前目录
@@ -2132,7 +2132,7 @@ npx eslint --fix .              # 自动修复
 npx eslint --ext .js,.vue src/  # 指定扩展名和目录
 ```
 
-## Vue 项目中的 ESLint
+### Vue 项目中的 ESLint
 
 ```js
 // .eslintrc.js（Vue 项目）
@@ -2150,16 +2150,16 @@ module.exports = {
 
 ---
 
-# Prettier
+## Prettier
 
-## 作用
+### 作用
 
 Prettier 是代码格式化工具，专注于代码风格（缩进、引号、分号等），与 ESLint 互补：
 
 - **ESLint**：代码质量 + 部分格式
 - **Prettier**：纯格式化
 
-## 基本配置
+### 基本配置
 
 ```json
 // .prettierrc
@@ -2174,7 +2174,7 @@ Prettier 是代码格式化工具，专注于代码风格（缩进、引号、�
 }
 ```
 
-## 与 ESLint 配合
+### 与 ESLint 配合
 
 安装：
 
@@ -2196,13 +2196,13 @@ module.exports = {
 
 ---
 
-# Git Hooks（husky + lint-staged）
+## Git Hooks（husky + lint-staged）
 
-## 为什么需要
+### 为什么需要
 
 防止不规范的代码被提交到仓库。在 `git commit` 时自动执行 ESLint 检查和 Prettier 格式化。
 
-## 配置步骤
+### 配置步骤
 
 ```bash
 # 1. 安装
@@ -2215,7 +2215,7 @@ npx husky init
 echo "npx lint-staged" > .husky/pre-commit
 ```
 
-## lint-staged 配置
+### lint-staged 配置
 
 ```json
 // package.json
@@ -2232,7 +2232,7 @@ echo "npx lint-staged" > .husky/pre-commit
 }
 ```
 
-## 工作流程
+### 工作流程
 
 ```
 git add → git commit → 触发 pre-commit hook → lint-staged
@@ -2948,3 +2948,6 @@ if (ticket) {
 | Token（JWT） | 前后端分离、移动端 | 不需要 | 支持 | 不支持（需黑名单） |
 | 双 Token | 安全要求高的应用 | 需要（Refresh Token） | 支持 | 支持（Refresh Token） |
 | SSO 单点登录 | 多系统统一登录（企业内网、平台） | 需要（全局Session） | 通过重定向解决 | 支持 |
+
+
+
