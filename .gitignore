@@ -56,3 +56,6 @@ build/
 *.tar.lz
 *.tar.lz4
 *.tar.zst
+
+# 简历
+*唐*
